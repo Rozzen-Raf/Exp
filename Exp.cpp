@@ -15,12 +15,11 @@ int main()
 	ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool>>(std::make_unique<ThreadPool>(8));
 	Sheduler sheduler;
 
-	Task* t = new Task(std::move(getprintInt(5)), processor);
-	sheduler.CoroStart(std::move(*t));
-
 	while (true)
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		Task t(std::move(getprintInt(5)), processor);
+		sheduler.CoroStart(std::move(t));
+		//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 }
 

@@ -12,9 +12,7 @@ struct CoroTaskVoid
 		}
 
 		std::suspend_always initial_suspend() noexcept { return {}; }
-		std::suspend_never final_suspend() noexcept { 
-			if(done_callback)
-				done_callback();
+		AwaitableFinalContinuation final_suspend() noexcept {
 			return {}; 
 		}
 		void unhandled_exception() { std::terminate(); }
@@ -22,7 +20,6 @@ struct CoroTaskVoid
 
 		~CoroTaskPromise()
 		{
-			std::cout << "destroy promise" << std::endl;
 		}
 
 		void set_done_callback(func_t callback) noexcept { done_callback = callback; }
@@ -49,6 +46,11 @@ struct CoroTaskVoid
 		return *this;
 	}
 	
+	~CoroTaskVoid()
+	{
+		if (handle_)
+			handle_.destroy();
+	}
 /*	bool await_ready() noexcept { return false; }
 	std::coroutine_handle<> await_suspend(std::coroutine_handle<> caller) {
 		handle_.promise().continuation = caller;

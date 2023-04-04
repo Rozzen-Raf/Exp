@@ -4,8 +4,6 @@ class TaskProcessorContext;
 typedef std::weak_ptr<TaskProcessorContext> ProcessorWeakPtr;
 typedef std::shared_ptr<TaskProcessorContext> ProcessorSharedPtr; 
 
-class Sheduler;
-
 class Task
 {
 private:
@@ -61,13 +59,14 @@ public:
 	void run(DeleterType deleter = DeleterType()) noexcept
 	{
 		deleterFnc = deleter;
-
+		taskPtr->set_done_callback([&]() {unreg(); });
 		taskPtr->start();
 	}
 
 	void unreg()
 	{
-		deleterFnc(this);
+		if(deleterFnc)
+			deleterFnc(this);
 	}
 
 	const UID_t& GetId() const noexcept { return ID; }
