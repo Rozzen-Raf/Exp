@@ -6,15 +6,15 @@ class Sheduler
 public:
 	Sheduler()
 	{
-		CurrentThreadId = std::this_thread::get_id();
+
 	}
 
 	void CoroStart(Task&& task)
 	{
-		//assert(CurrentThreadId == std::this_thread::get_id());
 		lock_t lock(mutex);
-		auto iter = tasks_map.insert({ task.GetId(), std::move(task) });
-		iter.first->second.run(
+		auto task_ptr = std::make_shared< Task>(std::move(task));
+		tasks_map.insert({ task.GetId(), task_ptr });
+		task_run(task_ptr,
 			[&](Task* task)
 			{
 				CoroUnreg(task->GetId());
@@ -24,13 +24,11 @@ public:
 
 	void CoroUnreg(const UID_t& id)
 	{
-		//assert(CurrentThreadId == std::this_thread::get_id());
 		lock_t lock(mutex);
 		auto task = tasks_map.extract(id);
 	}
 private:
-	std::map<UID_t, Task> tasks_map;
-	std::thread::id CurrentThreadId;
+	std::map<UID_t, TaskSharedPtr> tasks_map;
 	mutex_t mutex;
 };
 

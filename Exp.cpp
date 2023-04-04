@@ -4,10 +4,28 @@
 #include "ThreadPool.h"
 #include "Sheduler.h"
 #include "ChainableTask.h"
-CoroTaskVoid getprintInt(int x)
+static uint32_t start_time = 0;
+CoroTaskVoid getprintInt1()
 {
-	std::cout << x << std::endl;
+	static int x = 0;
+	if (!start_time)
+		start_time = clock();
+
+	uint32_t end_time = clock();
+	uint32_t dif = end_time - start_time;
+	std::cout << x++ << " "<< dif << std::endl;
 	co_return;
+}
+
+void getprintInt2()
+{
+	static int x = 0;
+	if (!start_time)
+		start_time = clock();
+
+	uint32_t end_time = clock();
+	uint32_t dif = end_time - start_time;
+	std::cout << x++ << " " << dif << std::endl;
 }
 
 int main()
@@ -17,8 +35,9 @@ int main()
 
 	while (true)
 	{
-		Task t(std::move(getprintInt(5)), processor);
+		Task t(std::move(getprintInt1()), processor);
 		sheduler.CoroStart(std::move(t));
+
 		//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 }

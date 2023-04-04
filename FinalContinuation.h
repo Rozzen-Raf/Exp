@@ -7,6 +7,9 @@ struct AwaitableFinalContinuation {
         await_suspend(auto caller) const noexcept {
         auto handle = caller.promise().continuation;
 
+        if (caller.promise().done_callback)
+            caller.promise().done_callback();
+
         return handle;
     }
     constexpr void await_resume() const noexcept {

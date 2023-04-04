@@ -14,6 +14,9 @@
 #include <chrono>
 #include <variant>
 #include <map>
+#include <future>
+#include <stdint.h>
+#include <type_traits>
 #include "UID.h"
 
 typedef std::function<void()> func_t;
