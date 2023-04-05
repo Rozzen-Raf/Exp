@@ -13,19 +13,20 @@ CoroTaskVoid getprintInt1()
 
 	uint32_t end_time = clock();
 	uint32_t dif = end_time - start_time;
-	std::cout << x++ << " "<< dif << std::endl;
+	std::cout << x++ << " Co "<< dif << std::endl;
 	co_return;
 }
 
-void getprintInt2()
+CoroTaskVoid getprintInt2()
 {
+	co_await getprintInt1();
 	static int x = 0;
 	if (!start_time)
 		start_time = clock();
 
 	uint32_t end_time = clock();
 	uint32_t dif = end_time - start_time;
-	std::cout << x++ << " " << dif << std::endl;
+	std::cout << x++ << "  !" << dif << std::endl;
 }
 
 int main()
@@ -35,10 +36,10 @@ int main()
 
 	while (true)
 	{
-		Task t(std::move(getprintInt1()), processor);
+		Task t(std::move(getprintInt2()), processor);
 		sheduler.CoroStart(std::move(t));
 
-		//std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		std::this_thread::sleep_for(std::chrono::microseconds(1));
 	}
 }
 

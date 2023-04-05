@@ -13,7 +13,7 @@ public:
 	{
 		lock_t lock(mutex);
 		auto task_ptr = std::make_shared< Task>(std::move(task));
-		tasks_map.insert({ task.GetId(), task_ptr });
+		tasks_map.insert({ task_ptr->GetId(), task_ptr });
 		task_run(task_ptr,
 			[&](Task* task)
 			{
@@ -26,6 +26,7 @@ public:
 	{
 		lock_t lock(mutex);
 		auto task = tasks_map.extract(id);
+		int i = task.mapped().use_count();
 	}
 private:
 	std::map<UID_t, TaskSharedPtr> tasks_map;

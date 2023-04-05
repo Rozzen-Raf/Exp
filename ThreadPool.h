@@ -57,19 +57,17 @@ inline ThreadPool::~ThreadPool()
 template<typename task_ptr>
 void ThreadPool::AddTask(task_ptr task)
 {
-    if constexpr(std::is_pointer_v<task_ptr>) 
+
     {
-        {
-            std::unique_lock<std::mutex> lock(queue_mutex);
+        std::unique_lock<std::mutex> lock(queue_mutex);
 
-            if (stop)
-                throw std::runtime_error("enqueue on stopped ThreadPool");
+        if (stop)
+            throw std::runtime_error("enqueue on stopped ThreadPool");
 
-            tasks.emplace([task]() {
-                std::invoke(task->GetFunc());
-                });
-        }
-        condition.notify_one();
+        tasks.emplace([task]() {
+            std::invoke(task->GetFunc());
+            });
     }
+    condition.notify_one();
 }
 

@@ -51,12 +51,12 @@ struct CoroTaskVoid
 		if (handle_)
 			handle_.destroy();
 	}
-/*	bool await_ready() noexcept { return false; }
+	bool await_ready() noexcept { return false; }
 	std::coroutine_handle<> await_suspend(std::coroutine_handle<> caller) {
 		handle_.promise().continuation = caller;
 		return handle_;
 	}
-	void await_resume() {}*/
+	void await_resume() {}
 
 private:
 	friend class Task;
