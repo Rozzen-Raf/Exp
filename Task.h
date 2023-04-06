@@ -27,8 +27,10 @@ private:
 	TaskProcessorUniquePtr Processor;
 
 public:
-	explicit TaskProcessorModel(TaskProcessorUniquePtr&& instance) noexcept : Processor(std::move(instance))
+	template<typename... Args>
+	explicit TaskProcessorModel(Args&&... args) noexcept
 	{
+		Processor = std::make_unique<TaskProcessor>(std::forward<Args>(args)...);
 	}
 	TaskProcessorModel(const TaskProcessor& instance) = delete;
 

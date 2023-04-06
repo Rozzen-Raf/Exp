@@ -1,12 +1,14 @@
 #pragma once
 #include "Task.h"
-template<typename mutex_t = std::recursive_mutex, typename lock_t = std::lock_guard<mutex_t>>
+#include "Worker.h"
+template<typename mutex_t = std::recursive_mutex, typename lock_t = std::unique_lock<mutex_t>>
 class Sheduler
 {
 public:
 	Sheduler()
 	{
-
+		std::hash<std::thread::id> hasher;
+		OwnerThreadID = hasher(std::this_thread::get_id());
 	}
 
 	void CoroStart(Task&& task)
@@ -28,8 +30,18 @@ public:
 		auto task = tasks_map.extract(id);
 		int i = task.mapped().use_count();
 	}
+
+	void RegisterWorker(WorkerBaseSharedPtr worker)
+	{
+		std::hash<std::thread::id> hasher;
+		assert(OwnerThreadID == hasher(std::this_thread::get_id()));
+
+		Workers.insert({ worker->GetType(), worker });
+	}
 private:
-	std::map<UID_t, TaskSharedPtr> tasks_map;
+	std::unordered_map<UID_t, TaskSharedPtr> tasks_map;
+	std::unordered_map<WorkerType, WorkerBaseSharedPtr> Workers;
 	mutex_t mutex;
+	size_t OwnerThreadID;
 };
 

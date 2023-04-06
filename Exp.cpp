@@ -31,7 +31,8 @@ CoroTaskVoid getprintInt2()
 
 int main()
 {
-	ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool>>(std::make_unique<ThreadPool>(8));
+	ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool>>(8);
+
 	Sheduler sheduler;
 
 	while (true)

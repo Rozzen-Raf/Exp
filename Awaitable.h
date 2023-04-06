@@ -1,9 +1,9 @@
 #pragma once
 #include "Types.h"
-#include "Control.h"
+#include "Worker.h"
 struct Awaitable
 {
-	Awaitable(ControlBaseSharedPtr control, AwaitableData&& data_) : Control(control), data(data_)
+	Awaitable(WorkerBaseSharedPtr worker, AwaitableData&& data_) : Worker(worker), data(data_)
 	{
 
 	}
@@ -11,12 +11,12 @@ struct Awaitable
 	bool await_ready() noexcept { return false; }
 	std::coroutine_handle<> await_suspend(std::coroutine_handle<> caller) {
 		data.continuation = caller;
-		Control->RegAwaitable(&data);
+		Worker->RegAwaitable(&data);
 		return caller;
 	}
 	void await_resume() {}
 private:
 	AwaitableData data;
-	ControlBaseSharedPtr Control;
+	WorkerBaseSharedPtr Worker;
 };
 

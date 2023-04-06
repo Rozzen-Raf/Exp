@@ -14,6 +14,7 @@
 #include <chrono>
 #include <variant>
 #include <map>
+#include <unordered_map>
 #include <future>
 #include <stdint.h>
 #include <type_traits>
@@ -24,9 +25,10 @@ typedef std::string String;
 typedef int ID_t;
 typedef std::variant<String, ID_t> UID_t;
 
-enum ControlType
+enum WorkerType
 {
-
+	NONE,
+	SELECT
 };
 
 enum EventType
@@ -44,4 +46,5 @@ struct AwaitableData
 	UID_t EventID;
 	std::coroutine_handle<> continuation;
 	AwaitableResult result;
+	WorkerType type;
 };
