@@ -3,9 +3,20 @@
 #include "Worker.h"
 struct Awaitable
 {
+	Awaitable() = default;
 	Awaitable(WorkerBaseSharedPtr worker, AwaitableData&& data_) : Worker(worker), data(data_)
 	{
 
+	}
+
+	~Awaitable()
+	{
+		unreg();
+	}
+
+	void unreg()
+	{
+		Worker->UnregAwaitable(&data);
 	}
 
 	bool await_ready() noexcept { return false; }
@@ -14,7 +25,10 @@ struct Awaitable
 		Worker->RegAwaitable(&data);
 		return caller;
 	}
-	void await_resume() {}
+	AwaitableResult await_resume() 
+	{
+		return data.result;
+	}
 private:
 	AwaitableData data;
 	WorkerBaseSharedPtr Worker;

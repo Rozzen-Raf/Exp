@@ -18,7 +18,18 @@
 #include <future>
 #include <stdint.h>
 #include <type_traits>
+#include <atomic>
 #include "UID.h"
+
+#ifdef __linux__
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/select.h>
+#endif
 
 typedef std::function<void()> func_t;
 typedef std::string String;
@@ -43,6 +54,9 @@ struct AwaitableResult
 
 struct AwaitableData
 {
+	AwaitableData() = default;
+	AwaitableData(WorkerType t, UID_t event_id) : type(t), EventID(event_id), continuation(std::noop_coroutine()), result{} {}
+
 	UID_t EventID;
 	std::coroutine_handle<> continuation;
 	AwaitableResult result;

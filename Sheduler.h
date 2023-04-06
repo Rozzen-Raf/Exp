@@ -1,6 +1,7 @@
 #pragma once
 #include "Task.h"
 #include "Worker.h"
+#include "Awaitable.h"
 template<typename mutex_t = std::recursive_mutex, typename lock_t = std::unique_lock<mutex_t>>
 class Sheduler
 {
@@ -37,6 +38,14 @@ public:
 		assert(OwnerThreadID == hasher(std::this_thread::get_id()));
 
 		Workers.insert({ worker->GetType(), worker });
+	}
+
+	Awaitable event(WorkerType type, UID_t id)
+	{
+		auto find_iter = Workers.find(type);
+		if(find_iter == Workers.end())
+			return {};
+		return Awaitable(AwaitableData(type, id), find_iter->second);
 	}
 private:
 	std::unordered_map<UID_t, TaskSharedPtr> tasks_map;
