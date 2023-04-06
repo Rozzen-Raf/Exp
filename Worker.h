@@ -1,5 +1,8 @@
 #pragma once
 #include "Types.h"
+
+typedef std::function<void(AwaitableData*)> emitter_f;
+
 class WorkerBase
 {
 public:
@@ -8,6 +11,15 @@ public:
 	virtual WorkerType GetType() const noexcept = 0;
 	virtual void Run() = 0;
 	virtual void Stop() = 0;
+
+private:
+	friend class Sheduler;
+	void SetEmit(emitter_f&& emit)
+	{
+		Emit = std::forward<emitter_f>(emit);
+	}
+
+	emitter_f Emit;
 };
 
 typedef std::shared_ptr<WorkerBase> WorkerBaseSharedPtr;
@@ -25,9 +37,10 @@ public:
 		if (data->type != GetType())
 			return;
 
-		ID_t fd = std::get<ID_t>(data->EventID);
-		if(fd == 0)
+		if(!std::holds_alternative<ID_t>(data->EventID));
 			return;
+
+		ID_t fd = std::get<ID_t>(data->EventID);
 		lock_t lock(mutex);
 		
 		if(Max < fd)
@@ -42,9 +55,11 @@ public:
 		if(data->type != GetType())
 			return;
 
-		ID_t fd = std::get<ID_t>(data->EventID);
-		if(fd == 0)
+		if(!std::holds_alternative<ID_t>(data->EventID));
 			return;
+
+		ID_t fd = std::get<ID_t>(data->EventID);
+
 		lock_t lock(mutex);
 
 		FD_CLR(fd, &Desc);
@@ -56,13 +71,20 @@ public:
 		stop = false;
 		while (!stop)
 		{
-			int res = select(Max + 1, &Desc, NULL, NULL, NULL);
+			fd_set select_set = Desc;
+			int res = select(Max + 1, &select_set, NULL, NULL, NULL);
 
 			if(res == 1)
 			{
+				lock_t lock(mutex);
 				for(auto&& await : Awaitables)
 				{
+					ID_t fd = std::get<int>(await.first);
 
+					if(FD_ISSET(fd, &select_set) && Emit)
+					{
+						Emit(await.second);
+					}
 				}
 			}
 		}
@@ -74,6 +96,9 @@ public:
 	}
 
 	virtual WorkerType GetType() const noexcept final { return WorkerType::SELECT; }
+private:
+
+
 private:
 	std::unordered_map<UID_t, AwaitableData*> Awaitables;
 	mutex_t mutex;

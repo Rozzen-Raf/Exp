@@ -54,7 +54,6 @@ struct AwaitableResult
 
 struct AwaitableData
 {
-	AwaitableData() = default;
 	AwaitableData(WorkerType t, UID_t event_id) : type(t), EventID(event_id), continuation(std::noop_coroutine()), result{} {}
 
 	UID_t EventID;

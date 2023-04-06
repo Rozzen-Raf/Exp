@@ -3,7 +3,6 @@
 #include "Worker.h"
 struct Awaitable
 {
-	Awaitable() = default;
 	Awaitable(WorkerBaseSharedPtr worker, AwaitableData&& data_) : Worker(worker), data(data_)
 	{
 

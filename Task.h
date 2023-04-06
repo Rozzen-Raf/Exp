@@ -16,7 +16,7 @@ protected:
 	virtual ~TaskProcessorContext() = default;
 public:
 
-	virtual void AddTask(TaskSharedPtr func) = 0;
+	virtual void AddTask(TaskSharedPtr task) = 0;
 };
 
 template<typename TaskProcessor>

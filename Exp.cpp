@@ -33,12 +33,11 @@ int main()
 {
 	ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool>>(8);
 
-	Sheduler sheduler;
+	Sheduler sheduler(processor);
 
 	while (true)
 	{
-		Task t(std::move(getprintInt2()), processor);
-		sheduler.CoroStart(std::move(t));
+		sheduler.CoroStart(std::move(getprintInt2()));
 
 		std::this_thread::sleep_for(std::chrono::microseconds(1));
 	}
