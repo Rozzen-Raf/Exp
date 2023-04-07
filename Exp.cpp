@@ -4,29 +4,29 @@
 #include "ThreadPool.h"
 #include "Sheduler.h"
 #include "ChainableTask.h"
+#include <string.h>
 static uint32_t start_time = 0;
-CoroTaskVoid getprintInt1()
-{
-	static int x = 0;
-	if (!start_time)
-		start_time = clock();
 
-	uint32_t end_time = clock();
-	uint32_t dif = end_time - start_time;
-	std::cout << x++ << " Co "<< dif << std::endl;
-	co_return;
+CoroTaskVoid async_accept(ID_t socket_fd, Sheduler& sh)
+{
+	int ret;
+	std::cout << "async_accept start" << std::endl;
+	while((ret = accept4(socket_fd, nullptr, nullptr, SOCK_NONBLOCK)) == -1)
+	{
+		auto status = co_await sh.event(SELECT, socket_fd);
+	}
+	std::cout << ret << std::endl;
+	shutdown(ret,2);
+	close(ret);
 }
 
-CoroTaskVoid getprintInt2()
+CoroTaskVoid async_server(ID_t socket_fd, Sheduler& sh)
 {
-	co_await getprintInt1();
-	static int x = 0;
-	if (!start_time)
-		start_time = clock();
-
-	uint32_t end_time = clock();
-	uint32_t dif = end_time - start_time;
-	std::cout << x++ << "  !" << dif << std::endl;
+	while(true)
+	{
+		co_await async_accept(socket_fd, sh);
+	}
+	co_return;
 }
 
 int main()
@@ -35,12 +35,36 @@ int main()
 
 	Sheduler sheduler(processor);
 
-	while (true)
-	{
-		sheduler.CoroStart(std::move(getprintInt2()));
+	WorkerBaseSharedPtr worker = std::make_shared<SelectWorker<>>();
+	sheduler.RegisterWorker(worker);
 
-		std::this_thread::sleep_for(std::chrono::microseconds(1));
+	int fd_ = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+
+	sockaddr_in addr;
+	memset(&addr, 0, sizeof(addr));
+	addr.sin_addr.s_addr = inet_addr("192.168.65.171");
+	addr.sin_port = htons(11111);
+	addr.sin_family = AF_INET;
+
+	if(bind(fd_, (sockaddr*)&addr, sizeof(addr)) == -1)
+	{
+		shutdown(fd_, 2);
+		close(fd_);
+		std::cout << "bind error" << std::endl;
+		return 0;
 	}
+
+	if(listen(fd_, SOMAXCONN) != 0)
+	{
+		shutdown(fd_, 2);
+		close(fd_);
+		std::cout << "listen error" << std::endl;
+		return 0;
+	}
+
+	sheduler.CoroStart(async_server(fd_, sheduler));
+	worker->Run();
+	return 0;
 }
 
 // Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"

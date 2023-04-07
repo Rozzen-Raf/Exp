@@ -42,19 +42,24 @@ enum WorkerType
 	SELECT
 };
 
-enum EventType
+enum StatusType
 {
+	Error, WakeUp, Wait
+};
 
+enum Result
+{
+	Failed, Success
 };
 
 struct AwaitableResult
 {
-	EventType type;
+	StatusType type = Wait;
 };
 
 struct AwaitableData
 {
-	AwaitableData(WorkerType t, UID_t event_id) : type(t), EventID(event_id), continuation(std::noop_coroutine()), result{} {}
+	AwaitableData(WorkerType t, UID_t&& event_id) : type(t), EventID(std::move(event_id)), continuation(std::noop_coroutine()), result{} {}
 
 	UID_t EventID;
 	std::coroutine_handle<> continuation;

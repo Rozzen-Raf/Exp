@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-
 typedef std::function<void(AwaitableData*)> emitter_f;
 
 class WorkerBase
@@ -18,7 +17,7 @@ private:
 	{
 		Emit = std::forward<emitter_f>(emit);
 	}
-
+protected:
 	emitter_f Emit;
 };
 
@@ -27,6 +26,20 @@ typedef std::shared_ptr<WorkerBase> WorkerBaseSharedPtr;
 template<typename mutex_t = std::recursive_mutex, typename lock_t = std::unique_lock<mutex_t>>
 class SelectWorker : public WorkerBase
 {
+private:
+	auto unreg(auto it)
+	{
+		if(it == Awaitables.end())
+			return it;
+
+		if(!std::holds_alternative<ID_t>(it->second->EventID))
+			return ++it;
+
+		ID_t fd = std::get<ID_t>(it->second->EventID);
+
+		FD_CLR(fd, &Desc);
+		return Awaitables.erase(it);
+	}
 public:
 	SelectWorker()
 	{
@@ -37,7 +50,7 @@ public:
 		if (data->type != GetType())
 			return;
 
-		if(!std::holds_alternative<ID_t>(data->EventID));
+		if(!std::holds_alternative<ID_t>(data->EventID))
 			return;
 
 		ID_t fd = std::get<ID_t>(data->EventID);
@@ -53,9 +66,11 @@ public:
 	virtual void UnregAwaitable(AwaitableData* data) noexcept
 	{
 		if(data->type != GetType())
+		{
 			return;
+		}
 
-		if(!std::holds_alternative<ID_t>(data->EventID));
+		if(!std::holds_alternative<ID_t>(data->EventID))
 			return;
 
 		ID_t fd = std::get<ID_t>(data->EventID);
@@ -71,19 +86,29 @@ public:
 		stop = false;
 		while (!stop)
 		{
+			timeval tv;
+			tv.tv_sec = 3;
+			tv.tv_usec = 0;
 			fd_set select_set = Desc;
-			int res = select(Max + 1, &select_set, NULL, NULL, NULL);
+			int res = select(Max + 1, &select_set, NULL, NULL, &tv);
 
 			if(res == 1)
 			{
+				std::cout << "!" << std::endl;
 				lock_t lock(mutex);
-				for(auto&& await : Awaitables)
+				for(auto await = Awaitables.begin(); await != Awaitables.end();)
 				{
-					ID_t fd = std::get<int>(await.first);
+					ID_t fd = std::get<int>(await->first);
 
-					if(FD_ISSET(fd, &select_set) && Emit)
+					if(await->second->result.type == Wait && FD_ISSET(fd, &select_set) && Emit)
 					{
-						Emit(await.second);
+						await->second->result = {WakeUp};
+						Emit(await->second);
+						await = unreg(await);
+					}
+					else
+					{
+						await++;
 					}
 				}
 			}

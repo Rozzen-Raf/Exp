@@ -16,7 +16,7 @@ struct CoroTaskVoid
 			return {}; 
 		}
 		void unhandled_exception() { std::terminate(); }
-		void return_void() {};
+		void return_void() {}
 
 		~CoroTaskPromise()
 		{
@@ -60,6 +60,7 @@ struct CoroTaskVoid
 
 private:
 	friend class Task;
+	friend class Sheduler;
 	func_t GetFunc()const noexcept { return [&]() {if (handle_) handle_.resume(); }; }
 
 	void SetDoneCallback(func_t callback)

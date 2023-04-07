@@ -2,6 +2,11 @@
 #include "Task.h"
 #include "Worker.h"
 #include "Awaitable.h"
+#include "ChainableTask.h"
+
+//Insert for the test, it is necessary to convert it to a normal coroutine sheduler's
+CoroTaskVoid Loop();
+
 class Sheduler
 {
 	using mutex_t = std::recursive_mutex; 
@@ -12,6 +17,7 @@ private:
 	mutex_t mutex;
 	size_t OwnerThreadID;
 	ProcessorSharedPtr Processor;
+	CoroTaskVoid ShedTask;
 
 	struct emit_task
 	{
@@ -25,10 +31,16 @@ private:
 		void SetDoneCallback(auto& s) noexcept {}
 	};
 public:
-	Sheduler(ProcessorSharedPtr processor) : Processor(processor)
+	Sheduler(ProcessorSharedPtr processor) : Processor(processor), ShedTask(std::move(Loop()))
 	{
 		std::hash<std::thread::id> hasher;
 		OwnerThreadID = hasher(std::this_thread::get_id());
+		
+	}
+
+	void Run()
+	{
+		ShedTask.handle_.resume();
 	}
 
 	template<typename T>
@@ -66,7 +78,7 @@ public:
 	{
 		auto find_iter = Workers.find(type);
 		assert(find_iter != Workers.end());
-		return Awaitable(find_iter->second, AwaitableData(type, id));
+		return Awaitable(find_iter->second, AwaitableData(type, std::move(id)), ShedTask.handle_);
 	}
 
 	void emit(AwaitableData* data)
