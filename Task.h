@@ -17,6 +17,7 @@ protected:
 public:
 
 	virtual void AddTask(TaskSharedPtr task) = 0;
+	virtual void Run() = 0;
 };
 
 template<typename TaskProcessor>
@@ -37,6 +38,11 @@ public:
 	virtual void AddTask(TaskSharedPtr func) noexcept final
 	{
 		Processor->AddTask(func);
+	}
+
+	virtual void Run() final
+	{
+		Processor->Run();
 	}
 };
 

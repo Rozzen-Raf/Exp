@@ -14,11 +14,14 @@ CoroTaskVoid async_accept(ID_t socket_fd, Sheduler& sh)
 	std::cout << "async_accept start" << std::endl;
 	while((ret = accept4(socket_fd, nullptr, nullptr, SOCK_NONBLOCK)) == -1)
 	{
-		auto status = co_await sh.event(SELECT, socket_fd);
+		auto status = co_await sh.event(EPOLL, socket_fd);
+		if(status.type != WakeUp)
+			co_return;
 	}
 	std::cout << ret << std::endl;
 	shutdown(ret,2);
 	close(ret);
+	co_return;
 }
 
 CoroTaskVoid async_server(ID_t socket_fd, Sheduler& sh)
@@ -64,12 +67,8 @@ int main()
 		EpollRegister(fd_, worker->GetID());
 		sheduler.RegisterWorker(worker);
 
+		sheduler.CoroStart(async_server(fd_, sheduler));
 		sheduler.Run();
-		while (true)
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-			sheduler.CoroStart(async_server(fd_, sheduler));
-		}
 	}
 	catch (const std::exception& ex)
     {

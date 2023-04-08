@@ -44,46 +44,46 @@ void EpollWorker::UnregAwaitable(AwaitableData* data) noexcept
 //--------------------------------------------------------------------------------
 
 CoroTaskVoid EpollWorker::Run()
+{
+    epoll_event ev;
+	stop = false;
+	while (!stop)
 	{
-        epoll_event ev;
-		stop = false;
-		while (!stop)
-		{
-            if(Awaitables.empty())
-            {
-                std::cout << "wait" << std::endl;
-                co_await std::suspend_always{};
-            }
-			int ret = epoll_wait(EpollFd, &ev, 1, 5000);
+        if(Awaitables.empty())
+        {
+            std::cout << "wait" << std::endl;
+            co_await std::suspend_always{};
+        }
+		int ret = epoll_wait(EpollFd, &ev, 1, 5000);
 
-            std::cout << ret << "!" << std::endl;
+        std::cout << ret << "!" << std::endl;
 
-            if(ret == -1)
-            {
-                throw std::system_error(errno, std::system_category(),
-                              "Failed to fetch epoll event.");
-            }
+        if(ret == -1)
+        {
+            throw std::system_error(errno, std::system_category(),
+                            "Failed to fetch epoll event.");
+        }
 
-            if(ret == 0)
+        if(ret == 0)
+            continue;
+		std::unordered_map<UID_t, AwaitableData*>::iterator find;
+        {
+            lock_t lock(mutex);
+            UID_t id = static_cast<ID_t>(ev.data.fd);
+            find = Awaitables.find(id);
+            if(find == Awaitables.end())
                 continue;
-			std::unordered_map<UID_t, AwaitableData*>::iterator find;
-            {
-                lock_t lock(mutex);
-                UID_t id = static_cast<ID_t>(ev.data.fd);
-                find = Awaitables.find(id);
-                if(find == Awaitables.end())
-                    continue;
-            }
+        }
 
-            if(ev.events & (EPOLLIN | EPOLLOUT))
-            {
-                find->second->result.type = WakeUp;
-            }
+        if(ev.events & (EPOLLIN | EPOLLOUT))
+        {
+            find->second->result.type = WakeUp;
+        }
 
-            Emit(find->second, this);
-		}
-        co_return;
-	}
+        Emit(find->second, this);
+    }
+    co_return;
+}
 //--------------------------------------------------------------------------------
 
 void EpollWorker::Stop() noexcept

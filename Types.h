@@ -40,7 +40,7 @@ typedef std::variant<String, ID_t> UID_t;
 enum WorkerType
 {
 	NONE,
-	SELECT
+	EPOLL
 };
 
 enum StatusType

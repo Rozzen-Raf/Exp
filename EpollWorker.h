@@ -18,9 +18,7 @@ public:
 
     virtual ID_t GetID() const noexcept final{ return EpollFd;}
 
-	virtual WorkerType GetType() const noexcept final { return WorkerType::SELECT; }
-private:
-
+	virtual WorkerType GetType() const noexcept final { return WorkerType::EPOLL; }
 
 private:
 	std::unordered_map<UID_t, AwaitableData*> Awaitables;

@@ -27,86 +27,35 @@ private:
 		void SetDoneCallback(auto& s) noexcept {}
 	};
 public:
-	Sheduler(ProcessorSharedPtr processor) : Processor(processor)
-	{
-		std::hash<std::thread::id> hasher;
-		OwnerThreadID = hasher(std::this_thread::get_id());
-	}
+	Sheduler(ProcessorSharedPtr processor);
 
-	void Run()
-	{
-		for(auto&& it : Workers)
-		{
-			auto& coro = it.second.second;
+	void Run();
 
-			ShedulerTask e{coro.GetFunc()};
-
-			TaskSharedPtr task = std::make_shared<Task>(std::move(e), Processor);
-			task_run(task);
-		}
-	}
-
-	void Stop()
-	{
-		for(auto&& worker : Workers)
-		{
-			worker.second.first->Stop();
-		}
-	}
+	void Stop();
 
 	template<typename T>
-	void CoroStart(T&& task)
-	{
-		lock_t lock(mutex);
-		auto task_ptr = std::make_shared<Task>(std::move(task), Processor);
-		tasks_map.insert({ task_ptr->GetId(), task_ptr });
-		task_run(task_ptr,
-			[&](Task* task)
-			{
-				CoroUnreg(task->GetId());
-			}
-		);
-	}
+	void CoroStart(T&& task);
 
-	void CoroUnreg(const UID_t& id)
-	{
-		lock_t lock(mutex);
-		auto task = tasks_map.extract(id);
-		int i = task.mapped().use_count();
-	}
+	void CoroUnreg(const UID_t& id);
 
-	void RegisterWorker(WorkerBaseSharedPtr worker)
-	{
-		std::hash<std::thread::id> hasher;
-		assert(OwnerThreadID == hasher(std::this_thread::get_id()));
+	void RegisterWorker(WorkerBaseSharedPtr worker);
 
-		using std::placeholders::_1, std::placeholders::_2;
-		worker->SetEmit(std::bind(&Sheduler::emit, this, _1, _2));
-		auto task = worker->Run();
-		auto pair = std::pair<WorkerBaseSharedPtr, CoroTaskVoid>(worker, std::move(task));
-		Workers.insert({ worker->GetType(), std::move(pair) });
-	}
+	Awaitable event(WorkerType type, UID_t id);
 
-	Awaitable event(WorkerType type, UID_t id)
-	{
-		auto find_iter = Workers.find(type);
-		assert(find_iter != Workers.end());
-		return Awaitable(find_iter->second.first, AwaitableData(type, std::move(id)), find_iter->second.second.handle_);
-	}
-
-	void emit(AwaitableData* data, WorkerBase* worker)
-	{
-		worker->UnregAwaitable(data);
-
-		auto func = [data]()
-		{
-			if(data->continuation)
-				data->continuation.resume();
-		};
-		ShedulerTask e{func};
-
-		TaskSharedPtr task = std::make_shared<Task>(std::move(e), Processor);
-		task_run(task);
-	}
+	void emit(AwaitableData* data, WorkerBase* worker);
 };
-
+//-----------------------------------------------------------------
+template<typename T>
+void Sheduler::CoroStart(T&& task)
+{
+	lock_t lock(mutex);
+	auto task_ptr = std::make_shared<Task>(std::move(task), Processor);
+	tasks_map.insert({ task_ptr->GetId(), task_ptr });
+	task_run(task_ptr,
+		[&](Task* task)
+		{
+			CoroUnreg(task->GetId());
+		}
+	);
+}
+//-----------------------------------------------------------------
