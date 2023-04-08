@@ -5,6 +5,7 @@
 #include "Sheduler.h"
 #include "ChainableTask.h"
 #include <string.h>
+#include "EpollWorker.h"
 static uint32_t start_time = 0;
 
 CoroTaskVoid async_accept(ID_t socket_fd, Sheduler& sh)
@@ -35,14 +36,14 @@ int main()
 
 	Sheduler sheduler(processor);
 
-	WorkerBaseSharedPtr worker = std::make_shared<SelectWorker<>>();
+	WorkerBaseSharedPtr worker = std::make_shared<EpollWorker>();
 	sheduler.RegisterWorker(worker);
 
 	int fd_ = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 
 	sockaddr_in addr;
 	memset(&addr, 0, sizeof(addr));
-	addr.sin_addr.s_addr = inet_addr("192.168.65.171");
+	addr.sin_addr.s_addr = inet_addr("192.168.0.104");
 	addr.sin_port = htons(11111);
 	addr.sin_family = AF_INET;
 
@@ -61,9 +62,13 @@ int main()
 		std::cout << "listen error" << std::endl;
 		return 0;
 	}
-
+	EpollRegister(fd_, worker->GetID());
 	sheduler.CoroStart(async_server(fd_, sheduler));
-	worker->Run();
+	sheduler.Run();
+	while (true)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+	}
 	return 0;
 }
 

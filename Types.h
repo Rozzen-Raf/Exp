@@ -22,6 +22,7 @@
 #include "UID.h"
 
 #ifdef __linux__
+#include <sys/epoll.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <stdint.h>
@@ -66,3 +67,7 @@ struct AwaitableData
 	AwaitableResult result;
 	WorkerType type;
 };
+
+int EpollRegister(int fd, int epoll_fd);
+
+int EpollDeregister(int fd, int epoll_fd);

@@ -4,9 +4,6 @@
 #include "Awaitable.h"
 #include "ChainableTask.h"
 
-//Insert for the test, it is necessary to convert it to a normal coroutine sheduler's
-CoroTaskVoid Loop();
-
 class Sheduler
 {
 	using mutex_t = std::recursive_mutex; 
@@ -17,9 +14,8 @@ private:
 	mutex_t mutex;
 	size_t OwnerThreadID;
 	ProcessorSharedPtr Processor;
-	CoroTaskVoid ShedTask;
 
-	struct emit_task
+	struct ShedulerTask
 	{
 		func_t func;
 
@@ -31,16 +27,33 @@ private:
 		void SetDoneCallback(auto& s) noexcept {}
 	};
 public:
-	Sheduler(ProcessorSharedPtr processor) : Processor(processor), ShedTask(std::move(Loop()))
+	Sheduler(ProcessorSharedPtr processor) : Processor(processor)
 	{
 		std::hash<std::thread::id> hasher;
 		OwnerThreadID = hasher(std::this_thread::get_id());
-		
 	}
 
 	void Run()
 	{
-		ShedTask.handle_.resume();
+		for(auto&& worker : Workers)
+		{
+			auto func = [worker]()
+			{
+				worker.second->Run();
+			};
+			ShedulerTask e{func};
+
+			TaskSharedPtr task = std::make_shared<Task>(std::move(e), Processor);
+			task_run(task);
+		}
+	}
+
+	void Stop()
+	{
+		for(auto&& worker : Workers)
+		{
+			worker.second->Stop();
+		}
 	}
 
 	template<typename T>
@@ -69,8 +82,8 @@ public:
 		std::hash<std::thread::id> hasher;
 		assert(OwnerThreadID == hasher(std::this_thread::get_id()));
 
-		using std::placeholders::_1;
-		worker->SetEmit(std::bind(&Sheduler::emit, this, _1));
+		using std::placeholders::_1, std::placeholders::_2;
+		worker->SetEmit(std::bind(&Sheduler::emit, this, _1, _2));
 		Workers.insert({ worker->GetType(), worker });
 	}
 
@@ -78,17 +91,19 @@ public:
 	{
 		auto find_iter = Workers.find(type);
 		assert(find_iter != Workers.end());
-		return Awaitable(find_iter->second, AwaitableData(type, std::move(id)), ShedTask.handle_);
+		return Awaitable(find_iter->second, AwaitableData(type, std::move(id)));
 	}
 
-	void emit(AwaitableData* data)
+	void emit(AwaitableData* data, WorkerBase* worker)
 	{
+		worker->UnregAwaitable(data);
+
 		auto func = [data]()
 		{
 			if(data->continuation)
 				data->continuation.resume();
 		};
-		emit_task e{func};
+		ShedulerTask e{func};
 
 		TaskSharedPtr task = std::make_shared<Task>(std::move(e), Processor);
 		task_run(task);
