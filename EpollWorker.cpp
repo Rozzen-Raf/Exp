@@ -43,15 +43,20 @@ void EpollWorker::UnregAwaitable(AwaitableData* data) noexcept
 	}
 //--------------------------------------------------------------------------------
 
-void EpollWorker::Run()
+CoroTaskVoid EpollWorker::Run()
 	{
         epoll_event ev;
 		stop = false;
 		while (!stop)
 		{
+            if(Awaitables.empty())
+            {
+                std::cout << "wait" << std::endl;
+                co_await std::suspend_always{};
+            }
 			int ret = epoll_wait(EpollFd, &ev, 1, 5000);
 
-            std::cout << ret << std::endl;
+            std::cout << ret << "!" << std::endl;
 
             if(ret == -1)
             {
@@ -77,6 +82,7 @@ void EpollWorker::Run()
 
             Emit(find->second, this);
 		}
+        co_return;
 	}
 //--------------------------------------------------------------------------------
 

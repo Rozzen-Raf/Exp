@@ -15,7 +15,12 @@ struct CoroTaskVoid
 		AwaitableFinalContinuation final_suspend() noexcept {
 			return {}; 
 		}
-		void unhandled_exception() { std::terminate(); }
+		
+		void unhandled_exception() 
+		{
+			auto exc = std::current_exception();
+			std::rethrow_exception(exc);
+		}
 		void return_void() {}
 
 		~CoroTaskPromise()
@@ -58,6 +63,7 @@ struct CoroTaskVoid
 	}
 	void await_resume() {}
 
+	void run() noexcept { if(handle_) handle_.resume();}
 private:
 	friend class Task;
 	friend class Sheduler;

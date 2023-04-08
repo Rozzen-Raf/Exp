@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "ChainableTask.h"
 class WorkerBase;
 typedef std::function<void(AwaitableData*, WorkerBase*)> emitter_f;
 
@@ -9,7 +10,7 @@ public:
 	virtual void RegAwaitable(AwaitableData* data) noexcept = 0;
 	virtual void UnregAwaitable(AwaitableData* data) noexcept = 0;
 	virtual WorkerType GetType() const noexcept = 0;
-	virtual void Run() = 0;
+	virtual CoroTaskVoid Run() = 0;
 	virtual void Stop() noexcept = 0;
 	virtual ID_t GetID() const noexcept = 0;
 

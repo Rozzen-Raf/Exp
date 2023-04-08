@@ -12,7 +12,7 @@ public:
 
 	virtual void UnregAwaitable(AwaitableData* data) noexcept final;
 
-	virtual void Run() final;
+	virtual CoroTaskVoid Run() final;
 
 	virtual void Stop() noexcept final;
 

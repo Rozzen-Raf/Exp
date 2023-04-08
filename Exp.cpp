@@ -32,13 +32,6 @@ CoroTaskVoid async_server(ID_t socket_fd, Sheduler& sh)
 
 int main()
 {
-	ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool>>(8);
-
-	Sheduler sheduler(processor);
-
-	WorkerBaseSharedPtr worker = std::make_shared<EpollWorker>();
-	sheduler.RegisterWorker(worker);
-
 	int fd_ = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 
 	sockaddr_in addr;
@@ -62,13 +55,30 @@ int main()
 		std::cout << "listen error" << std::endl;
 		return 0;
 	}
-	EpollRegister(fd_, worker->GetID());
-	sheduler.CoroStart(async_server(fd_, sheduler));
-	sheduler.Run();
-	while (true)
-	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+	
+	try{
+		ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool>>(8);
+		Sheduler sheduler(processor);
+
+		WorkerBaseSharedPtr worker = std::make_shared<EpollWorker>();
+		EpollRegister(fd_, worker->GetID());
+		sheduler.RegisterWorker(worker);
+
+		sheduler.Run();
+		while (true)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+			sheduler.CoroStart(async_server(fd_, sheduler));
+		}
 	}
+	catch (const std::exception& ex)
+    {
+        std::cerr << "Exception: " << ex.what() << '\n';
+    }
+    catch (...)
+    {
+        std::cerr << "Unknown exception.\n";
+    }
 	return 0;
 }
 

@@ -10,7 +10,7 @@ class Sheduler
 	using lock_t = std::unique_lock<mutex_t>;
 private:
 	std::unordered_map<UID_t, TaskSharedPtr> tasks_map;
-	std::unordered_map<WorkerType, WorkerBaseSharedPtr> Workers;
+	std::unordered_map<WorkerType, std::pair<WorkerBaseSharedPtr, CoroTaskVoid>> Workers;
 	mutex_t mutex;
 	size_t OwnerThreadID;
 	ProcessorSharedPtr Processor;
@@ -35,13 +35,11 @@ public:
 
 	void Run()
 	{
-		for(auto&& worker : Workers)
+		for(auto&& it : Workers)
 		{
-			auto func = [worker]()
-			{
-				worker.second->Run();
-			};
-			ShedulerTask e{func};
+			auto& coro = it.second.second;
+
+			ShedulerTask e{coro.GetFunc()};
 
 			TaskSharedPtr task = std::make_shared<Task>(std::move(e), Processor);
 			task_run(task);
@@ -52,7 +50,7 @@ public:
 	{
 		for(auto&& worker : Workers)
 		{
-			worker.second->Stop();
+			worker.second.first->Stop();
 		}
 	}
 
@@ -84,14 +82,16 @@ public:
 
 		using std::placeholders::_1, std::placeholders::_2;
 		worker->SetEmit(std::bind(&Sheduler::emit, this, _1, _2));
-		Workers.insert({ worker->GetType(), worker });
+		auto task = worker->Run();
+		auto pair = std::pair<WorkerBaseSharedPtr, CoroTaskVoid>(worker, std::move(task));
+		Workers.insert({ worker->GetType(), std::move(pair) });
 	}
 
 	Awaitable event(WorkerType type, UID_t id)
 	{
 		auto find_iter = Workers.find(type);
 		assert(find_iter != Workers.end());
-		return Awaitable(find_iter->second, AwaitableData(type, std::move(id)));
+		return Awaitable(find_iter->second.first, AwaitableData(type, std::move(id)), find_iter->second.second.handle_);
 	}
 
 	void emit(AwaitableData* data, WorkerBase* worker)
