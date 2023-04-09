@@ -1,4 +1,5 @@
 #include "UID.h"
+//---------------------------------------------------------------------
 
 std::string uuid::generate_uuid_v4() {
     std::stringstream ss;
@@ -26,3 +27,4 @@ std::string uuid::generate_uuid_v4() {
     };
     return ss.str();
 }
+//---------------------------------------------------------------------

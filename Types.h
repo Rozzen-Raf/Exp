@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <type_traits>
 #include <atomic>
+#include <concepts>
 #include "UID.h"
 
 #ifdef __linux__
