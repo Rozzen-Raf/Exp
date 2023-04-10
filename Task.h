@@ -60,12 +60,12 @@ private:
 		virtual void set_done_callback(func_t callback) noexcept = 0;
 	};
 
-	template<typename Task>
+	template<typename T>
 	struct TaskModel : TaskContext
 	{
-		Task instance;
+		T instance;
 
-		explicit TaskModel(Task&& task) : instance(std::move(task))		{
+		explicit TaskModel(T&& task) : instance(std::move(task))		{
 			
 		}
 

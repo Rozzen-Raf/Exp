@@ -8,15 +8,7 @@ struct Awaitable
 
 	}
 
-	~Awaitable()
-	{
-		//unreg();
-	}
-
-	void unreg()
-	{
-		//Worker->UnregAwaitable(&data);
-	}
+	~Awaitable() = default;
 
 	bool await_ready() noexcept { return false; }
 	std::coroutine_handle<> await_suspend(std::coroutine_handle<> caller) {

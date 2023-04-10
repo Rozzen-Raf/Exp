@@ -14,6 +14,8 @@ public:
 	virtual void Stop() noexcept = 0;
 	virtual ID_t GetID() const noexcept = 0;
 
+	virtual ~WorkerBase() {}
+
 private:
 	friend class Sheduler;
 	void SetEmit(emitter_f&& emit)
