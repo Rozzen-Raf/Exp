@@ -35,8 +35,7 @@ void Sheduler::Stop()
 void Sheduler::CoroUnreg(const UID_t& id)
 {
     lock_t lock(mutex);
-    auto task = tasks_map.extract(id);
-    int i = task.mapped().use_count();
+    tasks_map.extract(id);
 }
 //-----------------------------------------------------------------
 
@@ -46,7 +45,7 @@ void Sheduler::RegisterWorker(WorkerBaseSharedPtr worker)
     assert(OwnerThreadID == hasher(std::this_thread::get_id()));
 
     using std::placeholders::_1, std::placeholders::_2;
-    worker->SetEmit(std::bind(&Sheduler::emit, this, _1, _2));
+    worker->set_emit(std::bind(&Sheduler::emit, this, _1, _2));
     auto task = worker->Run();
     auto pair = std::pair<WorkerBaseSharedPtr, CoroTaskVoid>(worker, std::move(task));
     Workers.emplace(worker->GetType(), std::move(pair));
@@ -67,7 +66,7 @@ void Sheduler::emit(AwaitableData* data, WorkerBase* worker)
 
     auto func = [data]()
     {
-        if(data->continuation)
+        if(data && data->continuation)
             data->continuation.resume();
     };
     ShedulerTask e{func};

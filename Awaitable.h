@@ -3,7 +3,7 @@
 #include "Worker.h"
 struct Awaitable
 {
-	Awaitable(WorkerBaseSharedPtr worker, AwaitableData&& data_, std::coroutine_handle<> handle) : Worker(worker), data(data_), handle_(handle)
+    Awaitable(WorkerBaseSharedPtr worker, AwaitableData&& data_, std::coroutine_handle<> handle) :data(data_), Worker(worker),  handle_(handle)
 	{
 
 	}
@@ -16,7 +16,7 @@ struct Awaitable
 		Worker->RegAwaitable(&data);
 		return handle_;
 	}
-	AwaitableResult await_resume() 
+    AwaitableResult await_resume() const
 	{
 		return data.result;
 	}

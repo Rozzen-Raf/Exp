@@ -13,12 +13,15 @@ public:
 	virtual CoroTaskVoid Run() = 0;
 	virtual void Stop() noexcept = 0;
 	virtual ID_t GetID() const noexcept = 0;
+    virtual int Register(int fd) = 0;
+
+    virtual int Unregister(int fd) = 0;
 
 	virtual ~WorkerBase() {}
 
 private:
 	friend class Sheduler;
-	void SetEmit(emitter_f&& emit)
+	void set_emit(emitter_f&& emit)
 	{
 		Emit = std::forward<emitter_f>(emit);
 	}

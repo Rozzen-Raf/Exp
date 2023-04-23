@@ -29,13 +29,13 @@ private:
 
 public:
 	template<typename... Args>
-	explicit TaskProcessorModel(Args&&... args) noexcept
+    explicit TaskProcessorModel(Args&&... args) noexcept : Processor(std::make_unique<TaskProcessor>(std::forward<Args>(args)...))
 	{
-		Processor = std::make_unique<TaskProcessor>(std::forward<Args>(args)...);
+
 	}
 	TaskProcessorModel(const TaskProcessor& instance) = delete;
 
-	virtual void AddTask(TaskSharedPtr func) noexcept final
+    virtual void AddTask(TaskSharedPtr func) final
 	{
 		Processor->AddTask(func);
 	}

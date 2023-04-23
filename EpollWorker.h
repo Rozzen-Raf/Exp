@@ -20,6 +20,10 @@ public:
 
 	virtual WorkerType GetType() const noexcept final { return WorkerType::EPOLL; }
 
+    virtual int Register(int fd) final;
+
+    virtual int Unregister(int fd) final;
+
 private:
 	std::unordered_map<UID_t, AwaitableData*> Awaitables;
 	mutex_t mutex;

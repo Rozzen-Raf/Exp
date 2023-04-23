@@ -6,6 +6,8 @@
 #include "ChainableTask.h"
 #include <string.h>
 #include "EpollWorker.h"
+#include <cstddef>
+#include "Socket.h"
 static uint32_t start_time = 0;
 
 CoroTaskVoid async_accept(ID_t socket_fd, Sheduler& sh)
@@ -33,9 +35,19 @@ CoroTaskVoid async_server(ID_t socket_fd, Sheduler& sh)
 	co_return;
 }
 
+
+void signalHandler( int signum ) {
+   std::cout << "Interrupt signal (" << signum << ") received.\n";
+
+   // cleanup and close up stuff here  
+   // terminate program  
+
+   exit(signum);  
+}
+
 int main()
 {
-	int fd_ = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+    signal(SIGINT, signalHandler);
 
 	sockaddr_in addr;
 	memset(&addr, 0, sizeof(addr));
@@ -43,31 +55,20 @@ int main()
 	addr.sin_port = htons(11111);
 	addr.sin_family = AF_INET;
 
-	if(bind(fd_, (sockaddr*)&addr, sizeof(addr)) == -1)
-	{
-		shutdown(fd_, 2);
-		close(fd_);
-		std::cout << "bind error" << std::endl;
-		return 0;
-	}
+    IPEndPoint endpoint((sockaddr*)&addr);
+    Socket sock;
 
-	if(listen(fd_, SOMAXCONN) != 0)
-	{
-		shutdown(fd_, 2);
-		close(fd_);
-		std::cout << "listen error" << std::endl;
-		return 0;
-	}
+    bool res = sock.Listen(endpoint);
 	
 	try{
 		ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool>>(8);
 		Sheduler sheduler(processor);
 
 		WorkerBaseSharedPtr worker = std::make_shared<EpollWorker>();
-		EpollRegister(fd_, worker->GetID());
+        worker->Register(sock.Desc());
 		sheduler.RegisterWorker(worker);
 
-		sheduler.CoroStart(async_server(fd_, sheduler));
+        sheduler.CoroStart(async_server(sock.Desc(), sheduler));
 		sheduler.Run();
 	}
 	catch (const std::exception& ex)

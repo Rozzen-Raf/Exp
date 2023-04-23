@@ -1,46 +1,43 @@
 #include "EpollWorker.h"
 EpollWorker::EpollWorker()
-	{
-        if (EpollFd != -1)
-            return;
-        EpollFd = epoll_create(1);
-        if (EpollFd == -1)
-            throw std::system_error(errno, std::system_category(),
-                "Failed to create epoll socket.");
-	}
+{
+    if (EpollFd != -1)
+        return;
+    EpollFd = epoll_create(1);
+    if (EpollFd == -1)
+        throw std::system_error(errno, std::system_category(),
+            "Failed to create epoll socket.");
+}
 //--------------------------------------------------------------------------------
 
 void EpollWorker::RegAwaitable(AwaitableData* data) noexcept
-	{
-		if (data->type != GetType())
-			return;
+{
+    if (data->type != GetType())
+        return;
 
-		if(!std::holds_alternative<ID_t>(data->EventID))
-			return;
+    if(!std::holds_alternative<ID_t>(data->EventID))
+        return;
 
-		ID_t fd = std::get<ID_t>(data->EventID);
-		lock_t lock(mutex);
+    lock_t lock(mutex);
 
-		Awaitables.emplace(data->EventID, data );
-	}
+    Awaitables.emplace(data->EventID, data );
+}
 //--------------------------------------------------------------------------------
 
 void EpollWorker::UnregAwaitable(AwaitableData* data) noexcept
-	{
-		if(data->type != GetType())
-		{
-			return;
-		}
+{
+    if(data->type != GetType())
+    {
+        return;
+    }
 
-		if(!std::holds_alternative<ID_t>(data->EventID))
-			return;
+    if(!std::holds_alternative<ID_t>(data->EventID))
+        return;
 
-		ID_t fd = std::get<ID_t>(data->EventID);
+    lock_t lock(mutex);
 
-		lock_t lock(mutex);
-
-		Awaitables.erase(data->EventID);
-	}
+    Awaitables.erase(data->EventID);
+}
 //--------------------------------------------------------------------------------
 
 CoroTaskVoid EpollWorker::Run()
@@ -92,19 +89,19 @@ void EpollWorker::Stop() noexcept
 }
 //--------------------------------------------------------------------------------
 
-int EpollRegister(int fd, int epoll_fd)
+int EpollWorker::Register(int fd)
 {
     epoll_event ev = {};
-  ev.events = EPOLLIN | EPOLLOUT | EPOLLPRI | EPOLLERR | EPOLLHUP | EPOLLET;
-  ev.data.fd = fd;
-  int ret = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &ev);
-  return ret;
+    ev.events = EPOLLIN | EPOLLOUT | EPOLLPRI | EPOLLERR | EPOLLHUP | EPOLLET;
+    ev.data.fd = fd;
+    int ret = epoll_ctl(EpollFd, EPOLL_CTL_ADD, fd, &ev);
+    return ret;
 }
 //--------------------------------------------------------------------------------
 
-int EpollDeregister(int fd, int epoll_fd)
+int EpollWorker::Unregister(int fd)
 {
-    int ret = epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
+    int ret = epoll_ctl(EpollFd, EPOLL_CTL_DEL, fd, nullptr);
     return ret;
 }
 //--------------------------------------------------------------------------------

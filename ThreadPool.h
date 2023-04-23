@@ -5,7 +5,7 @@ class ThreadPool {
     using mutex_t = std::mutex; 
     using lock_t = std::unique_lock<mutex_t>;
 public:
-    ThreadPool(size_t threads);
+    explicit ThreadPool(size_t threads);
 
     void Run();
 

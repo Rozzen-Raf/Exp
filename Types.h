@@ -21,7 +21,9 @@
 #include <atomic>
 #include <concepts>
 #include "UID.h"
-
+#include <string.h>
+#include <any>
+#include <csignal>
 #ifdef __linux__
 #include <sys/epoll.h>
 #include <sys/types.h>
@@ -61,7 +63,7 @@ struct AwaitableResult
 
 struct AwaitableData
 {
-	AwaitableData(WorkerType t, UID_t&& event_id) : type(t), EventID(std::move(event_id)), continuation(std::noop_coroutine()), result{} {}
+    AwaitableData(WorkerType t, UID_t&& event_id) : EventID(std::move(event_id)), continuation(std::noop_coroutine()), type(t), result{} {}
 
 	UID_t EventID;
 	std::coroutine_handle<> continuation;
@@ -69,6 +71,16 @@ struct AwaitableData
 	WorkerType type;
 };
 
-int EpollRegister(int fd, int epoll_fd);
+#define DECLARE_SHARED_PTR(T) class T; using T##SharedPtr = std::shared_ptr<T>;
 
-int EpollDeregister(int fd, int epoll_fd);
+#define DECLARE_WEAK_PTR(T) class T;\
+    using T##WeakPtr = std::weak_ptr<T>;
+
+#define DECLARE_STR_SHARED_PTR(T)    struct T;\
+    typedef std::shared_ptr<T> T##SharedPtr;
+
+#define DECLARE_UNIQUE_PTR(T) class T;\
+    using T##UniquePtr = std::unique_ptr<T>;
+
+#define SLOG(a, m) \
+std::cout << #a << ": " << m << std::endl;
