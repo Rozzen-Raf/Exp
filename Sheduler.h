@@ -56,4 +56,5 @@ private:
     ProcessorSharedPtr Processor;
 };
 DECLARE_SHARED_PTR(Sheduler)
+DECLARE_WEAK_PTR(Sheduler)
 //-----------------------------------------------------------------

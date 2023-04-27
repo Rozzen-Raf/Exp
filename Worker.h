@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "ChainableTask.h"
 class WorkerBase;
-typedef std::function<void(AwaitableData*, WorkerBase*)> emitter_f;
+using emitter_f = std::function<void(AwaitableData*, WorkerBase*)> ;
 
 class WorkerBase
 {

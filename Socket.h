@@ -4,23 +4,17 @@
 #include "ChainableTask.h"
 #include "Types.h"
 #include "IPEndPoint.h"
-#include "RegisterMediator.h"
 class Socket
 {
 public:
 	static constexpr uint64_t BUFFER_SIZE = 1024;
 
-    Socket()
+    Socket() noexcept
     {
         Create();
     }
 
-    explicit Socket(RegisterMediatorBasePtr mediator) : RegMediator(mediator)
-	{
-        Create();
-	}
-
-    explicit Socket(IPv version, int fd = -1, RegisterMediatorBasePtr mediator = nullptr) : fd_(fd), Version(version), RegMediator(mediator)
+    explicit Socket(IPv version, int fd = -1) noexcept : fd_(fd), Version(version)
 	{
 
 	}
@@ -30,19 +24,10 @@ public:
         Close();
     }
 
-//	SSocket(const SSocket& sock) : fd_(sock.fd_), Version(sock.Version){}
-
-    Socket(Socket&& sock) : fd_(std::move(sock.fd_)), Version(std::move(sock.Version))
+    Socket(Socket&& sock) noexcept : fd_(std::move(sock.fd_)), Version(std::move(sock.Version))
     {
         sock.fd_ = -1;
     }
-
-//	SSocket& operator=(const SSocket& fd)
-//	{
-//		fd_ = fd.fd_;
-//		Version = fd.Version;
-//		return *this;
-//	}
 
     Socket& operator=(Socket&& fd)
 	{
@@ -67,7 +52,6 @@ public:
 	bool Create();
 	bool Bind(const IPEndPoint& endpoint);
 	bool Listen(const IPEndPoint& endpoint);
-    Socket Accept();
 
 	// PSBuffer read();
 	// int write(PSBuffer buffer);
@@ -81,12 +65,10 @@ public:
 	{
 		return fd_ >= 0;
 	}
-private:
-    void RegisterMediator();
-private:
+
+protected:
 	int fd_ = -1;
 	IPv Version;
-	RegisterMediatorBasePtr RegMediator;
 };
 DECLARE_SHARED_PTR(Socket)
 

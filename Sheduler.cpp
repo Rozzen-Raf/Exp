@@ -42,7 +42,7 @@ void Sheduler::CoroUnreg(const UID_t& id)
 void Sheduler::RegisterWorker(WorkerBaseSharedPtr worker)
 {
     std::hash<std::thread::id> hasher;
-    assert(OwnerThreadID == hasher(std::this_thread::get_id()));
+    ASSERT(OwnerThreadID == hasher(std::this_thread::get_id()));
 
     using std::placeholders::_1, std::placeholders::_2;
     worker->set_emit(std::bind(&Sheduler::emit, this, _1, _2));
@@ -55,7 +55,7 @@ void Sheduler::RegisterWorker(WorkerBaseSharedPtr worker)
 Awaitable Sheduler::event(WorkerType type, UID_t id)
 {
     auto find_iter = Workers.find(type);
-    assert(find_iter != Workers.end());
+    ASSERT(find_iter != Workers.end());
     return Awaitable(find_iter->second.first, AwaitableData(type, std::move(id)), find_iter->second.second.handle_);
 }
 //-----------------------------------------------------------------

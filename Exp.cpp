@@ -8,33 +8,7 @@
 #include "EpollWorker.h"
 #include <cstddef>
 #include "Socket.h"
-static uint32_t start_time = 0;
-
-CoroTaskVoid async_accept(ID_t socket_fd, Sheduler& sh)
-{
-	int ret;
-	std::cout << "async_accept start" << std::endl;
-	while((ret = accept4(socket_fd, nullptr, nullptr, SOCK_NONBLOCK)) == -1)
-	{
-		auto status = co_await sh.event(EPOLL, socket_fd);
-		if(status.type != WakeUp)
-			co_return;
-	}
-	std::cout << ret << std::endl;
-	shutdown(ret,2);
-	close(ret);
-	co_return;
-}
-
-CoroTaskVoid async_server(ID_t socket_fd, Sheduler& sh)
-{
-	while(true)
-	{
-		co_await async_accept(socket_fd, sh);
-	}
-	co_return;
-}
-
+#include "JsonParser.h"
 
 void signalHandler( int signum ) {
    std::cout << "Interrupt signal (" << signum << ") received.\n";
@@ -49,26 +23,14 @@ int main()
 {
     signal(SIGINT, signalHandler);
 
-	sockaddr_in addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_addr.s_addr = inet_addr("192.168.0.104");
-	addr.sin_port = htons(11111);
-	addr.sin_family = AF_INET;
-
-    IPEndPoint endpoint((sockaddr*)&addr);
-    Socket sock;
-
-    bool res = sock.Listen(endpoint);
 	
 	try{
 		ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool>>(8);
 		Sheduler sheduler(processor);
 
 		WorkerBaseSharedPtr worker = std::make_shared<EpollWorker>();
-        worker->Register(sock.Desc());
 		sheduler.RegisterWorker(worker);
 
-        sheduler.CoroStart(async_server(sock.Desc(), sheduler));
 		sheduler.Run();
 	}
 	catch (const std::exception& ex)

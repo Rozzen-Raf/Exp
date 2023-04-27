@@ -1,13 +1,16 @@
 #pragma once
 #include "Types.h"
+
 class TaskProcessorContext;
-typedef std::weak_ptr<TaskProcessorContext> ProcessorWeakPtr;
-typedef std::shared_ptr<TaskProcessorContext> ProcessorSharedPtr; 
 class Task;
-typedef std::shared_ptr<Task> TaskSharedPtr;
-typedef std::function<void(Task*)> DeleterType;
-void task_run(TaskSharedPtr task, DeleterType deleter = DeleterType());
 class ThreadPool;
+
+using ProcessorWeakPtr = std::weak_ptr<TaskProcessorContext> ;
+using ProcessorSharedPtr = std::shared_ptr<TaskProcessorContext> ; 
+using TaskSharedPtr = std::shared_ptr<Task>;
+using DeleterType = std::function<void(Task*)>;
+
+void task_run(TaskSharedPtr task, DeleterType deleter = DeleterType());
 
 class TaskProcessorContext
 {

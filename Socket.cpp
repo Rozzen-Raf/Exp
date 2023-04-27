@@ -59,25 +59,6 @@ bool Socket::Listen(const IPEndPoint& endpoint)
 	return true;
 }
 //----------------------------------------------------------
-
-Socket Socket::Accept()
-{
-	sockaddr_in addr = {};
-    socklen_t len = sizeof(sockaddr_in);
-
-	int new_con = accept(fd_, (sockaddr*)&addr, &len);
-
-    Socket socket = Socket(IPv::IPv4, new_con);
-
-	return socket;
-}
-//----------------------------------------------------------
-
-void Socket::RegisterMediator()
-{
-    if(RegMediator)
-        RegMediator->Register(fd_);
-}
 //----------------------------------------------------------
 //----------------------------------------------------------
 //----------------------------------------------------------

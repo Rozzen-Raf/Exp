@@ -24,6 +24,8 @@
 #include <string.h>
 #include <any>
 #include <csignal>
+#include <span>
+#include <optional>
 #ifdef __linux__
 #include <sys/epoll.h>
 #include <sys/types.h>
@@ -35,10 +37,19 @@
 #include <sys/select.h>
 #endif
 
-typedef std::function<void()> func_t;
-typedef std::string String;
-typedef int ID_t;
-typedef std::variant<String, ID_t> UID_t;
+#define DEBUG 1
+
+#ifdef DEBUG
+#define ASSERT(a) assert(a)
+#elif
+#define ASSERT(a)
+#endif
+
+using func_t = std::function<void()> ;
+using String = std::string;
+using StringView = std::string_view;
+using ID_t = int;
+using UID_t = std::variant<String, ID_t>;
 
 enum WorkerType
 {
@@ -77,7 +88,7 @@ struct AwaitableData
     using T##WeakPtr = std::weak_ptr<T>;
 
 #define DECLARE_STR_SHARED_PTR(T)    struct T;\
-    typedef std::shared_ptr<T> T##SharedPtr;
+    using T##SharedPtr = std::shared_ptr<T>;
 
 #define DECLARE_UNIQUE_PTR(T) class T;\
     using T##UniquePtr = std::unique_ptr<T>;

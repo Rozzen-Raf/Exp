@@ -1,10 +1,13 @@
 #include "MetaType.h"
 //-----------------------------------------------------------------
-MetaDataUniquePtr MetaType::StaticMetaData = nullptr;
+MetaDataUniquePtr MetaData::StaticMetaData = nullptr;
 //-----------------------------------------------------------------
 
-MetaData* MetaType::GetMetaData()
+MetaData* MetaData::GetMetaData()
 {
+    if(!StaticMetaData)
+        StaticMetaData = std::make_unique<MetaData>();
 
+    return StaticMetaData.get();
 }
 //-----------------------------------------------------------------
