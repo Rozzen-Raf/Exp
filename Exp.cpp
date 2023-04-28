@@ -1,7 +1,4 @@
-﻿// Exp.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
-//
-
-#include "ThreadPool.h"
+﻿#include "ThreadPool.h"
 #include "Sheduler.h"
 #include "ChainableTask.h"
 #include <string.h>
@@ -9,6 +6,7 @@
 #include <cstddef>
 #include "Socket.h"
 #include "JsonParser.h"
+#include "MetaTypeInclude.h"
 
 void signalHandler( int signum ) {
    std::cout << "Interrupt signal (" << signum << ") received.\n";
@@ -23,15 +21,36 @@ int main()
 {
     signal(SIGINT, signalHandler);
 
-	
 	try{
+        RegisterAllMetaClass();
 		ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool>>(8);
-		Sheduler sheduler(processor);
+		ShedulerSharedPtr sheduler = std::make_shared<Sheduler>(processor);
 
-		WorkerBaseSharedPtr worker = std::make_shared<EpollWorker>();
-		sheduler.RegisterWorker(worker);
+		EpollWorkerSharedPtr worker = std::make_shared<EpollWorker>();
+		sheduler->RegisterWorker(worker);
 
-		sheduler.Run();
+        JsonParser parser;
+        parser.ParseFromFile("config.json");
+
+        auto server_opt = parser.GetValue<json>("Server");
+        if(!server_opt.has_value())
+        {
+            ERROR(main, "Config file is not contains Server");
+        }
+        JsonParser server_config(std::move(server_opt.value()));
+
+        auto type_opt = server_config.GetValue<String>("Type");
+        if(!type_opt.has_value())
+        {
+            ERROR(main, "Config file is not contains Server:Type");
+        }
+
+        RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<EpollWorker>>(worker);
+
+        auto args = Arguments<Server>(sheduler, mediator, server_config);
+        ServerSharedPtr server = std::static_pointer_cast<Server>(MetaData::GetMetaData()->Create(type_opt.value(), args));
+        sheduler->CoroStart(server->AsyncServerRun());
+		sheduler->Run();
 	}
 	catch (const std::exception& ex)
     {
@@ -43,14 +62,3 @@ int main()
     }
 	return 0;
 }
-
-// Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
-// Отладка программы: F5 или меню "Отладка" > "Запустить отладку"
-
-// Советы по началу работы 
-//   1. В окне обозревателя решений можно добавлять файлы и управлять ими.
-//   2. В окне Team Explorer можно подключиться к системе управления версиями.
-//   3. В окне "Выходные данные" можно просматривать выходные данные сборки и другие сообщения.
-//   4. В окне "Список ошибок" можно просматривать ошибки.
-//   5. Последовательно выберите пункты меню "Проект" > "Добавить новый элемент", чтобы создать файлы кода, или "Проект" > "Добавить существующий элемент", чтобы добавить в проект существующие файлы кода.
-//   6. Чтобы снова открыть этот проект позже, выберите пункты меню "Файл" > "Открыть" > "Проект" и выберите SLN-файл.

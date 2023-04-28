@@ -118,7 +118,7 @@ struct CoroTask
 		std::coroutine_handle<> continuation = std::noop_coroutine();
 		std::coroutine_handle<> handle = std::noop_coroutine();
 		func_t done_callback;
-		T&& value;
+		T value;
 	};
 
 	using promise_type = CoroTaskPromise;

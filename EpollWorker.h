@@ -20,9 +20,9 @@ public:
 
 	virtual WorkerType GetType() const noexcept final { return WorkerType::EPOLL; }
 
-    virtual int Register(int fd) final;
+    virtual int Register(const std::any& fd) final;
 
-    virtual int Unregister(int fd) final;
+    virtual int Unregister(const std::any& fd) final;
 
 private:
 	std::unordered_map<UID_t, AwaitableData*> Awaitables;
@@ -30,4 +30,5 @@ private:
 	std::atomic<bool> stop;
 	int EpollFd = -1;
 };
+DECLARE_SHARED_PTR(EpollWorker)
 

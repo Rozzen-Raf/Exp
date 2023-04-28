@@ -1,6 +1,6 @@
 #include "Listener.h"
 
-CoroTask<Socket> Listener::AsyncAccept(ShedulerWeakPtr sheduler) noexcept
+CoroTask<Socket> Listener::AsyncAccept(ShedulerSharedPtr sheduler) noexcept
 {
 	int ret;
 	std::cout << "async_accept start" << std::endl;

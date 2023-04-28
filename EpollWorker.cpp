@@ -89,8 +89,9 @@ void EpollWorker::Stop() noexcept
 }
 //--------------------------------------------------------------------------------
 
-int EpollWorker::Register(int fd)
+int EpollWorker::Register(const std::any& fd_any)
 {
+    int fd = std::any_cast<int>(fd_any);
     epoll_event ev = {};
     ev.events = EPOLLIN | EPOLLOUT | EPOLLPRI | EPOLLERR | EPOLLHUP | EPOLLET;
     ev.data.fd = fd;
@@ -99,8 +100,9 @@ int EpollWorker::Register(int fd)
 }
 //--------------------------------------------------------------------------------
 
-int EpollWorker::Unregister(int fd)
+int EpollWorker::Unregister(const std::any& fd_any)
 {
+    int fd = std::any_cast<int>(fd_any);
     int ret = epoll_ctl(EpollFd, EPOLL_CTL_DEL, fd, nullptr);
     return ret;
 }

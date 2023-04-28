@@ -4,6 +4,7 @@
 #include "ChainableTask.h"
 #include "Types.h"
 #include "IPEndPoint.h"
+#include "Sheduler.h"
 class Socket
 {
 public:
@@ -53,13 +54,8 @@ public:
 	bool Bind(const IPEndPoint& endpoint);
 	bool Listen(const IPEndPoint& endpoint);
 
-	// PSBuffer read();
-	// int write(PSBuffer buffer);
-
-	// chainable_task<PSBuffer> async_read(TaskProcessorContext* task_processor);
-	// chainable_task_void async_read(TaskProcessorContext* task_processor, const callback_f& callback);
-
-	// chainable_task<int> async_write(TaskProcessorContext* task_processor, PSBuffer buffer);
+	CoroTaskVoid async_read(ShedulerSharedPtr sheduler, buffer& read_bf);
+	CoroTaskVoid async_write(ShedulerSharedPtr sheduler, const buffer& write_bf);
 
 	bool isValid() const noexcept
 	{

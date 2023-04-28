@@ -1,17 +1,21 @@
 #include "TcpServer.h"
 //--------------------------------------------------------
-TcpServer::TcpServer(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr register, const json& json_data) : 
-listener(nullptr), 
-Sheduler(sheduler), 
-IsWorking(true),
-Register(register)
+METATYPE_DEF(TcpServer)
+//--------------------------------------------------------
+TcpServer::TcpServer(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const JsonParser& json_data) : 
+listener(nullptr),  
+IsWorking(true)
 {
     ASSERT(sheduler);
 
-    String host = json_data.GetValue<String>("Host");
-    uint port = json_data.GetValue<uint>("Port");
+    SetArgs(sheduler, reg, json_data);
+}
+//--------------------------------------------------------
 
-    Addr = IPEndPoint(host.c_str(), port);
+TcpServer::TcpServer() : 
+listener(nullptr), 
+IsWorking(true)
+{
 }
 //--------------------------------------------------------
 
@@ -27,10 +31,38 @@ CoroTaskVoid TcpServer::AsyncServerRun()
 
     while(IsWorking)
     {
-        Socket s = std::move(co_await listener.AsyncAccept());
+        Socket s = std::move(co_await listener.AsyncAccept(Sheduler));
+        Sessions.emplace(s.Desc(), Session(std::move(s), Sheduler));
     }    
 
     co_return;
+}
+//--------------------------------------------------------
+
+void TcpServer::SetArgs(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const JsonParser& json_data)
+{
+    Sheduler = sheduler;
+    Register = reg;
+
+    auto host_opt = json_data.GetValue<String>("Host");
+
+    if(!host_opt.has_value())
+    {
+        ERROR(TcpServer, "Config file is not contains Host");
+        return;
+    }
+    String host = std::move(host_opt.value());
+
+    auto port_opt = json_data.GetValue<uint>("Port");
+    if(!port_opt.has_value())
+    {
+        ERROR(TcpServer, "Config file is not contains Port");
+        return;
+    }
+
+    uint port = std::move(port_opt.value());
+
+    Addr = IPEndPoint(host.c_str(), port);
 }
 //--------------------------------------------------------
 //--------------------------------------------------------

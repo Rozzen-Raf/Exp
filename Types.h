@@ -26,6 +26,7 @@
 #include <csignal>
 #include <span>
 #include <optional>
+#include <fstream>
 #ifdef __linux__
 #include <sys/epoll.h>
 #include <sys/types.h>
@@ -93,5 +94,8 @@ struct AwaitableData
 #define DECLARE_UNIQUE_PTR(T) class T;\
     using T##UniquePtr = std::unique_ptr<T>;
 
-#define SLOG(a, m) \
-std::cout << #a << ": " << m << std::endl;
+#define LOG(a, m) std::cout << #a << ": " << m << std::endl;
+
+#define ERROR(a,m) std::cerr << #a << ": " << m << std::endl;
+
+using buffer = std::span<std::byte>;

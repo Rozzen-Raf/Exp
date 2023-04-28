@@ -5,10 +5,15 @@ using json = nlohmann::json;
 
 class JsonParser
 {
-    void Parse(std::span<std::byte> data);
+public:
+    JsonParser() = default;
+    JsonParser(json&& data);
+    //JsonParser(JsonParser&& )
+    void Parse(buffer& data);
+    void ParseFromFile(StringView file_name);
 
     template<class T>
-    std::optional<T> GetValue(const String& key)
+    std::optional<T> GetValue(const String& key) const
     {
         try {
 			auto value = Data.at(key);
@@ -17,7 +22,7 @@ class JsonParser
 		}
 		catch (const std::exception& e)
 		{
-            std::cerr << e.what() << '\n';
+            ERROR(JsonParser, e.what());
             return {};
         }
     }

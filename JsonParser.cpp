@@ -1,6 +1,10 @@
 #include "JsonParser.h"
+//-----------------------------------------------------------
 
-void JsonParser::Parse(std::span<std::byte> data)
+JsonParser::JsonParser(json&& data) : Data(data)
+{}
+//-----------------------------------------------------------
+void JsonParser::Parse(buffer& data)
 {
     try
     {
@@ -8,6 +12,24 @@ void JsonParser::Parse(std::span<std::byte> data)
     }
     catch(const std::exception& e)
     {
-        std::cerr << e.what() << '\n';
+        ERROR(JsonParser, e.what());
     }
 }
+//-----------------------------------------------------------
+
+void JsonParser::ParseFromFile(StringView file_name)
+{
+    try
+    {
+        std::ifstream f(file_name.data());
+
+        Data = json::parse(f);
+    }
+    catch(const std::exception& e)
+    {
+        ERROR(JsonParser, e.what());
+    }
+}
+//-----------------------------------------------------------
+//-----------------------------------------------------------
+//-----------------------------------------------------------
