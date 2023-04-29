@@ -10,7 +10,6 @@ CoroTask<Socket> Listener::AsyncAccept(ShedulerSharedPtr sheduler) noexcept
 		if(status.type != WakeUp)
 			co_return {};
 	}
-	std::cout << ret << std::endl;
-	shutdown(ret,2);
-	close(ret);
+    Register->Register(ret);
+    co_return Socket(IPv::IPv4, ret);
 }

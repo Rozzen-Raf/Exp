@@ -6,8 +6,6 @@ TcpServer::TcpServer(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, co
 listener(nullptr),  
 IsWorking(true)
 {
-    ASSERT(sheduler);
-
     SetArgs(sheduler, reg, json_data);
 }
 //--------------------------------------------------------
@@ -32,17 +30,35 @@ CoroTaskVoid TcpServer::AsyncServerRun()
     while(IsWorking)
     {
         Socket s = std::move(co_await listener.AsyncAccept(Sheduler));
-        Sessions.emplace(s.Desc(), Session(std::move(s), Sheduler));
+        {
+            lock_t l(mutex);
+            ID_t id = s.Desc();
+            auto session_iter = Sessions.emplace(id, Session(this, std::move(s), Sheduler));
+
+            if(session_iter.second)
+            {
+                Sheduler->CoroStart(session_iter.first->second.AsyncRead(true));
+            }
+        }
     }    
 
     co_return;
 }
 //--------------------------------------------------------
 
+CoroTaskVoid TcpServer::AsyncSessionHandle()
+{
+
+}
+//--------------------------------------------------------
+
 void TcpServer::SetArgs(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const JsonParser& json_data)
 {
+    ASSERT(sheduler);
+
     Sheduler = sheduler;
     Register = reg;
+    listener.SetRegister(reg);
 
     auto host_opt = json_data.GetValue<String>("Host");
 
@@ -63,6 +79,25 @@ void TcpServer::SetArgs(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg,
     uint port = std::move(port_opt.value());
 
     Addr = IPEndPoint(host.c_str(), port);
+}
+//--------------------------------------------------------
+
+void TcpServer::CloseSession(const ID_t &id) noexcept
+{
+    lock_t l(mutex);
+    Sessions.erase(id);
+}
+//--------------------------------------------------------
+
+void TcpServer::RedirectAll(const ID_t &id, buffer buf) noexcept
+{
+    lock_t l(mutex);
+    for(auto&& conn : Sessions)
+    {
+       if(conn.first == id)
+           continue;
+       Sheduler->CoroStart(conn.second.AsyncWrite(buf));
+    }
 }
 //--------------------------------------------------------
 //--------------------------------------------------------

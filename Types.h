@@ -50,7 +50,7 @@ using func_t = std::function<void()> ;
 using String = std::string;
 using StringView = std::string_view;
 using ID_t = int;
-using UID_t = std::variant<String, ID_t>;
+using UID_t = std::variant<String, ID_t, int64_t>;
 
 enum WorkerType
 {
@@ -71,6 +71,7 @@ enum Result
 struct AwaitableResult
 {
 	StatusType type = Wait;
+    UID_t id;
 };
 
 struct AwaitableData
@@ -98,4 +99,6 @@ struct AwaitableData
 
 #define ERROR(a,m) std::cerr << #a << ": " << m << std::endl;
 
-using buffer = std::span<std::byte>;
+using buffer_view = std::span<std::byte>;
+//using buffer_const = std::span<const std::byte>;
+using buffer = std::vector<std::byte>;

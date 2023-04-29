@@ -46,19 +46,13 @@ CoroTaskVoid EpollWorker::Run()
 	stop = false;
 	while (!stop)
 	{
-        if(Awaitables.empty())
-        {
-            std::cout << "wait" << std::endl;
-            co_await std::suspend_always{};
-        }
 		int ret = epoll_wait(EpollFd, &ev, 1, 5000);
 
-        std::cout << ret << "!" << std::endl;
+        //std::cout << ret << "!" << std::endl;
 
         if(ret == -1)
         {
-            throw std::system_error(errno, std::system_category(),
-                            "Failed to fetch epoll event.");
+            continue;
         }
 
         if(ret == 0)

@@ -54,8 +54,8 @@ public:
 	bool Bind(const IPEndPoint& endpoint);
 	bool Listen(const IPEndPoint& endpoint);
 
-	CoroTaskVoid async_read(ShedulerSharedPtr sheduler, buffer& read_bf);
-	CoroTaskVoid async_write(ShedulerSharedPtr sheduler, const buffer& write_bf);
+    CoroTask<AwaitableResult> async_read(ShedulerSharedPtr sheduler, buffer& read_bf);
+    CoroTask<AwaitableResult> async_write(ShedulerSharedPtr sheduler, buffer write_bf);
 
 	bool isValid() const noexcept
 	{

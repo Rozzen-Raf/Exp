@@ -7,7 +7,7 @@ class JsonParser
 {
 public:
     JsonParser() = default;
-    JsonParser(json&& data);
+    explicit JsonParser(json&& data);
     //JsonParser(JsonParser&& )
     void Parse(buffer& data);
     void ParseFromFile(StringView file_name);

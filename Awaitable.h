@@ -11,10 +11,10 @@ struct Awaitable
 	~Awaitable() = default;
 
 	bool await_ready() noexcept { return false; }
-	std::coroutine_handle<> await_suspend(std::coroutine_handle<> caller) {
+    void await_suspend(std::coroutine_handle<> caller) {
 		data.continuation = caller;
 		Worker->RegAwaitable(&data);
-		return handle_;
+        return;
 	}
     AwaitableResult await_resume() const
 	{

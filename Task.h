@@ -99,7 +99,7 @@ public:
 	explicit Task(T&& task, ProcessorSharedPtr processor) noexcept : 
 		taskPtr(std::make_unique<TaskModel<T>>(std::move(task))), 
 		processor_(processor), 
-		ID(uuid::generate_uuid_v4())
+        ID(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count())
 	{
 	}
 

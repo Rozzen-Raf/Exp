@@ -29,7 +29,7 @@ class Arguments : public IArguments
         
         static const size_t length = sizeof...(Args);
 
-        ArgsModel(Args&&... a) : args(std::forward<Args>(a)...)
+        explicit ArgsModel(Args&&... a) : args(std::forward<Args>(a)...)
         {
 
         }
@@ -111,9 +111,8 @@ DECLARE_UNIQUE_PTR(MetaData)
 class MetaData
 {
 public:
-    MetaData() 
+    MetaData() : MetaMaps(std::make_shared<SMetaMaps>())
     {
-        MetaMaps = std::make_shared<SMetaMaps>();
     }
 
     MetaTypeSharedPtr Register(std::string&& class_name, MetaTypeSharedPtr metatype)

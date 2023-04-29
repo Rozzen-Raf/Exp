@@ -3,7 +3,6 @@
 #include "JsonParser.h"
 #include "Listener.h"
 #include "Sheduler.h"
-#include "Session.h"
 class Server
 {
 public:
@@ -13,7 +12,13 @@ public:
 
     virtual void SetArgs(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const JsonParser& json_data) = 0;
 
+    virtual void CloseSession(const ID_t& id) noexcept = 0;
+
+    //for test
+    virtual void RedirectAll(const ID_t& id, buffer buf) noexcept = 0;
+
 protected:
 
 };
 DECLARE_SHARED_PTR(Server)
+DECLARE_WEAK_PTR(Server)

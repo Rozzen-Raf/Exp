@@ -3,7 +3,7 @@
 
 #include "Server.h"
 #include "MetaType.h"
-
+#include "Session.h"
 class TcpServer : public Server
 {
     METATYPE
@@ -14,9 +14,14 @@ public:
     TcpServer(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const JsonParser& json_data);
     virtual void SetArgs(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const JsonParser& json_data) override;
     virtual CoroTaskVoid AsyncServerRun() final;
+    virtual CoroTaskVoid AsyncSessionHandle() final;
+    virtual void CloseSession(const ID_t& id) noexcept final;
+
+    //for test
+    virtual void RedirectAll(const ID_t& id, buffer buf) noexcept final;
 private:
     mutex_t mutex;
-    std::unordered_map<UID_t, Session> Sessions;
+    std::unordered_map<int, Session> Sessions;
     Listener listener;
     IPEndPoint Addr;
     ShedulerSharedPtr Sheduler;
