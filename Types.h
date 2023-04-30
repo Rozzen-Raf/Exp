@@ -60,7 +60,7 @@ enum WorkerType
 
 enum StatusType
 {
-	Error, WakeUp, Wait
+	Error, WakeUp, Wait, HangUp
 };
 
 enum Result
@@ -72,6 +72,10 @@ struct AwaitableResult
 {
 	StatusType type = Wait;
     UID_t id;
+	String err_message;
+	int err;
+
+    constexpr operator bool() const { return type == WakeUp;}
 };
 
 struct AwaitableData
@@ -100,5 +104,5 @@ struct AwaitableData
 #define ERROR(a,m) std::cerr << #a << ": " << m << std::endl;
 
 using buffer_view = std::span<std::byte>;
-//using buffer_const = std::span<const std::byte>;
 using buffer = std::vector<std::byte>;
+using buffer_ptr = std::shared_ptr<buffer>;

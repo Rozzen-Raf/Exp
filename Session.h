@@ -12,7 +12,7 @@ public:
     Session(Session&& s);
     ~Session();
     CoroTaskVoid AsyncRead(bool loop);
-    CoroTaskVoid AsyncWrite(buffer write_bf);
+    CoroTaskVoid AsyncWrite(buffer_ptr write_bf);
     void Close() noexcept;
 
 private:

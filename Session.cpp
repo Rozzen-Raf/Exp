@@ -22,22 +22,23 @@ CoroTaskVoid Session::AsyncRead(bool loop)
 {
     while(loop)
     {
-        buffer read_buffer_view(256);
-        auto status = co_await Connection.async_read(Sheduler, read_buffer_view);
+        buffer_ptr read_buffer = std::make_shared<buffer>();
+        auto status = co_await Connection.async_read(Sheduler, read_buffer);
 
         if(status.type != WakeUp)
         {
             loop = false;
+            ERROR(Session, status.err_message);
             Close();
         }
-        Serv->RedirectAll(Connection.Desc(), read_buffer_view);
+        Serv->RedirectAll(Connection.Desc(), read_buffer);
     }
     
     co_return;
 }
 //------------------------------------------------
 
-CoroTaskVoid Session::AsyncWrite(buffer write_bf)
+CoroTaskVoid Session::AsyncWrite(buffer_ptr write_bf)
 {
     auto status = co_await Connection.async_write(Sheduler, write_bf);
 

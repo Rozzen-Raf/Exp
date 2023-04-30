@@ -1,4 +1,15 @@
 #include "EpollWorker.h"
+//--------------------------------------------------------------------------------
+int get_errno(int fd) {
+  int error = 0;
+  socklen_t errlen = sizeof(error);
+  if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (void *)&error, &errlen) == 0) {
+    return error;
+  } else {
+    return errno;
+  }
+}
+//--------------------------------------------------------------------------------
 EpollWorker::EpollWorker()
 {
     if (EpollFd != -1)
@@ -48,8 +59,6 @@ CoroTaskVoid EpollWorker::Run()
 	{
 		int ret = epoll_wait(EpollFd, &ev, 1, 5000);
 
-        //std::cout << ret << "!" << std::endl;
-
         if(ret == -1)
         {
             continue;
@@ -57,7 +66,8 @@ CoroTaskVoid EpollWorker::Run()
 
         if(ret == 0)
             continue;
-		std::unordered_map<UID_t, AwaitableData*>::iterator find;
+
+        std::unordered_map<UID_t, AwaitableData*>::iterator find;
         {
             lock_t lock(mutex);
             UID_t id = static_cast<ID_t>(ev.data.fd);
@@ -66,8 +76,24 @@ CoroTaskVoid EpollWorker::Run()
                 continue;
         }
 
-        if(ev.events & (EPOLLIN | EPOLLOUT))
+        find->second->result.id = static_cast<ID_t>(ev.data.fd);
+
+        if(ev.events & (EPOLLERR))
         {
+            find->second->result.err = get_errno(ev.data.fd);
+            find->second->result.type = Error;
+            find->second->result.err_message = "Socket error";
+        }
+        else if(ev.events & (EPOLLHUP | EPOLLRDHUP))
+        {
+            find->second->result.err = 0;
+            find->second->result.err_message = "Socket close";
+            find->second->result.type = HangUp;
+        }
+        else if(ev.events & (EPOLLIN | EPOLLOUT))
+        {
+            find->second->result.err = 0;
+            find->second->result.err_message = "";
             find->second->result.type = WakeUp;
         }
 

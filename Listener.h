@@ -7,7 +7,7 @@ class Listener : public Socket
 {
 public:
     explicit Listener(RegisterMediatorBasePtr reg) noexcept: Register(reg){}
-    CoroTask<Socket> AsyncAccept(ShedulerSharedPtr shared) noexcept;
+    CoroTask<AwaitableResult> AsyncAccept(ShedulerSharedPtr shared) noexcept;
 
 
     inline void SetRegister(RegisterMediatorBasePtr reg) noexcept { Register = reg;}

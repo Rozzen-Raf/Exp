@@ -29,10 +29,20 @@ CoroTaskVoid TcpServer::AsyncServerRun()
 
     while(IsWorking)
     {
-        Socket s = std::move(co_await listener.AsyncAccept(Sheduler));
+        auto status = co_await listener.AsyncAccept(Sheduler);
+        if(!status)
+        {
+            ERROR(TcpServer, status.err_message);
+            continue;
+        }
+
+        if(!std::holds_alternative<ID_t>(status.id))
+            continue;
+
         {
             lock_t l(mutex);
-            ID_t id = s.Desc();
+            ID_t id = std::get<ID_t>(status.id);
+            Socket s(IPv::IPv4, id);
             auto session_iter = Sessions.emplace(id, Session(this, std::move(s), Sheduler));
 
             if(session_iter.second)
@@ -43,12 +53,6 @@ CoroTaskVoid TcpServer::AsyncServerRun()
     }    
 
     co_return;
-}
-//--------------------------------------------------------
-
-CoroTaskVoid TcpServer::AsyncSessionHandle()
-{
-
 }
 //--------------------------------------------------------
 
@@ -89,7 +93,7 @@ void TcpServer::CloseSession(const ID_t &id) noexcept
 }
 //--------------------------------------------------------
 
-void TcpServer::RedirectAll(const ID_t &id, buffer buf) noexcept
+void TcpServer::RedirectAll(const ID_t &id, buffer_ptr buf) noexcept
 {
     lock_t l(mutex);
     for(auto&& conn : Sessions)

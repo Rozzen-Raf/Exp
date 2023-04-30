@@ -60,20 +60,48 @@ bool Socket::Listen(const IPEndPoint& endpoint)
 }
 //----------------------------------------------------------
 
-CoroTask<AwaitableResult> Socket::async_read(ShedulerSharedPtr sheduler, buffer& read_bf)
+CoroTask<AwaitableResult> Socket::async_read(ShedulerSharedPtr sheduler, buffer_ptr read_bf)
 {
-   // auto shifting_data = read_bf;
     while(true)
     {
-        int64_t cnt = recv(fd_, read_bf.data(), read_bf.size(), MSG_DONTWAIT | MSG_NOSIGNAL);
+        ssize_t cnt = recv(fd_, read_bf->data(), read_bf->size(), MSG_DONTWAIT | MSG_NOSIGNAL);
 
         if(cnt == -1 && errno != EAGAIN)
         {
-            ERROR(Socket, "Failes too read data from socket");
-            co_return {Error};
+            co_return {Error, fd_, "Failes too read data from socket", errno};
         }
 
+        if(cnt == 0)
+            break;
+
         if(cnt == -1 && errno == EAGAIN)
+        {
+            auto status = co_await sheduler->event(EPOLL, fd_);
+            if(status.type != WakeUp)
+                co_return status;
+            continue;
+        }
+
+        read_bf->resize(cnt);
+        break;
+    }
+
+    co_return {WakeUp};
+}
+//----------------------------------------------------------
+
+CoroTask<AwaitableResult> Socket::async_write(ShedulerSharedPtr sheduler, buffer_ptr write_bf)
+{
+    ssize_t written_bytes = 0;
+    while(written_bytes < write_bf->size())
+    {
+        ssize_t cnt = send(fd_, write_bf->data(), write_bf->size(), MSG_DONTWAIT | MSG_NOSIGNAL);
+
+        if(cnt == -1 && errno != EAGAIN)
+        {
+            co_return {Error, fd_, "Failes too write data from socket", errno};
+        }
+        else if(cnt == -1 && errno == EAGAIN)
         {
             auto status = co_await sheduler->event(EPOLL, fd_);
             if(status.type != WakeUp)
@@ -82,28 +110,11 @@ CoroTask<AwaitableResult> Socket::async_read(ShedulerSharedPtr sheduler, buffer&
                 continue;
             continue;
         }
-
-        read_bf.resize(cnt);
-        break;
+        else if(cnt > 0)
+        {
+            written_bytes += cnt;
+        }
     }
-
-    co_return {WakeUp};
-}
-//----------------------------------------------------------
-
-CoroTask<AwaitableResult> Socket::async_write(ShedulerSharedPtr sheduler, buffer write_bf)
-{
-    size_t cnt = send(fd_, write_bf.data() , write_bf.size(), MSG_DONTWAIT | MSG_NOSIGNAL);
-
-    if(cnt == -1 && errno != EAGAIN)
-    {
-        ERROR(Socket, "Failes too write data from socket");
-        co_return {Error};
-    }
-
-    auto status = co_await sheduler->event(EPOLL, fd_);
-    if(status.type != WakeUp)
-            co_return status;
 
     co_return {WakeUp};
 }

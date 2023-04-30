@@ -15,7 +15,7 @@ public:
     virtual void CloseSession(const ID_t& id) noexcept = 0;
 
     //for test
-    virtual void RedirectAll(const ID_t& id, buffer buf) noexcept = 0;
+    virtual void RedirectAll(const ID_t& id, buffer_ptr buf) noexcept = 0;
 
 protected:
 
