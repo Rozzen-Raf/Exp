@@ -61,7 +61,7 @@ enum WorkerType
 
 enum StatusType
 {
-	Error, WakeUp, Wait, HangUp
+	Error, WakeUp, Wait, HangUp, Success
 };
 
 struct AwaitableResult
@@ -71,7 +71,7 @@ struct AwaitableResult
 	String err_message;
 	int err;
 
-    constexpr operator bool() const { return type == WakeUp;}
+    constexpr operator bool() const { return type == WakeUp || type == Success;}
 };
 
 struct AwaitableData

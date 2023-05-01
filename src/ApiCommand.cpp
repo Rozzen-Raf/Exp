@@ -9,10 +9,10 @@ std::pair<ID_t, Result> Print::ExecutionCommand(const JsonParser& json_data)
     auto message_id = json_data.GetValue<ID_t>("MessageID");
 
     if(!print_data.has_value() || !message_id.has_value())
-        return {-1, Failed};
+        return {-1, Result::Failed};
 
     LOG(Print, print_data.value());
 
-    return std::make_pair(message_id.value(), Success);
+    return std::make_pair(message_id.value(), Result::Success);
 }
 //-------------------------------------------------------------

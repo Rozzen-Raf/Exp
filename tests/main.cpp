@@ -1,11 +1,4 @@
-#include "catch2/catch_all.hpp"
-#include "ThreadPool.h"
-#include "Sheduler.h"
-#include "JsonParser.h"
-#include "MetaTypeInclude.h"
-#include "ChainableTask.h"
-#include "EpollWorker.h"
-
+#include "Headers.h"
 int main( int argc, char* argv[] ) 
 {
     Catch::Session session;
@@ -25,7 +18,7 @@ int main( int argc, char* argv[] )
         String config = "{\
             \"Server\" : {\
                 \"Host\" : \"127.0.0.1\",\
-                \"Port\" : 11111,\
+                \"Port\" : 1111,\
                 \"Type\" : \"TcpServer\",\
             }\
 		}";

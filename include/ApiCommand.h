@@ -2,7 +2,7 @@
 #include "MetaType.h"
 #include "JsonParser.h"
 
-enum Result
+enum class Result
 {
 	Failed, Success, UnknownCommand
 };

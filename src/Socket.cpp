@@ -62,6 +62,9 @@ bool Socket::Listen(const IPEndPoint& endpoint)
 
 CoroTask<AwaitableResult> Socket::async_read(ShedulerSharedPtr sheduler, buffer_ptr read_bf)
 {
+    if(!read_bf || read_bf->empty())
+        co_return {Error, fd_, "Read buffer is empty", -1};
+
     while(true)
     {
         ssize_t cnt = recv(fd_, read_bf->data(), read_bf->size(), MSG_DONTWAIT | MSG_NOSIGNAL);
@@ -77,7 +80,7 @@ CoroTask<AwaitableResult> Socket::async_read(ShedulerSharedPtr sheduler, buffer_
         if(cnt == -1 && errno == EAGAIN)
         {
             auto status = co_await sheduler->event(EPOLL, fd_);
-            if(status.type != WakeUp)
+            if(!status)
                 co_return status;
             continue;
         }
@@ -92,6 +95,9 @@ CoroTask<AwaitableResult> Socket::async_read(ShedulerSharedPtr sheduler, buffer_
 
 CoroTask<AwaitableResult> Socket::async_write(ShedulerSharedPtr sheduler, buffer_ptr write_bf)
 {
+    if(!write_bf || write_bf->empty())
+        co_return {Error, fd_, "Write buffer is empty", -1};
+
     ssize_t written_bytes = 0;
     while(written_bytes < write_bf->size())
     {
@@ -104,7 +110,7 @@ CoroTask<AwaitableResult> Socket::async_write(ShedulerSharedPtr sheduler, buffer
         else if(cnt == -1 && errno == EAGAIN)
         {
             auto status = co_await sheduler->event(EPOLL, fd_);
-            if(status.type != WakeUp)
+            if(!status)
                 co_return status;
             else
                 continue;
@@ -117,6 +123,59 @@ CoroTask<AwaitableResult> Socket::async_write(ShedulerSharedPtr sheduler, buffer
     }
 
     co_return {WakeUp};
+}
+//----------------------------------------------------------
+
+AwaitableResult Socket::read(buffer_ptr read_bf)
+{
+    if(!read_bf || read_bf->empty())
+        return {Error, fd_, "Read buffer is empty", -1};
+
+    while(true)
+    {
+        int cnt = recv(fd_, read_bf->data(), read_bf->size(), MSG_NOSIGNAL);
+
+        if(cnt == -1 && errno != EAGAIN)
+        {
+            return {Error, fd_, "Failes too read data from socket", errno};
+        }
+        else if(cnt == -1 && errno == EAGAIN)
+        {
+            continue;
+        }
+
+        break;
+    }
+
+    return {Success};
+}
+//----------------------------------------------------------
+
+AwaitableResult Socket::write(buffer_ptr write_bf)
+{
+    if(!write_bf || write_bf->empty())
+        return {Error, fd_, "Write buffer is empty", -1};
+
+    ssize_t written_bytes = 0;
+    while(written_bytes < write_bf->size())
+    {
+        ssize_t cnt = send(fd_, write_bf->data(), write_bf->size(), MSG_NOSIGNAL);
+
+        if(cnt == -1 && errno != EAGAIN)
+        {
+            return {Error, fd_, "Failes too write data from socket", errno};
+        }
+        else if(cnt == -1 && errno == EAGAIN)
+        {
+            continue;
+        }
+        else if(cnt > 0)
+        {
+            written_bytes += cnt;
+        }
+    }
+
+    return {Success};
 }
 //----------------------------------------------------------
 //----------------------------------------------------------

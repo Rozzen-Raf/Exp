@@ -22,26 +22,26 @@ CoroTaskVoid Session::AsyncRead(bool loop)
 {
     while(loop)
     {
-        buffer_ptr read_buffer = std::make_shared<buffer>();
+        buffer_ptr read_buffer = std::make_shared<buffer>(256);
         auto status = co_await Connection.async_read(Sheduler, read_buffer);
 
-        if(status.type != WakeUp)
+        if(!status)
         {
             loop = false;
             ERROR(Session, status.err_message);
             Close();
         }
-        //Serv->RedirectAll(Connection.Desc(), read_buffer);
+        Serv->RedirectAll(Connection.Desc(), read_buffer);
 
-        auto api_command_pair = ParseJsonApiCommand(read_buffer);
+        // auto api_command_pair = ParseJsonApiCommand(read_buffer);
 
-        std::pair<ID_t, Result> res{-1, UnknownCommand};
-        if(api_command_pair.first)
-        {
-            res = api_command_pair.first->ExecutionCommand(JsonParser(std::move(api_command_pair.second)));
-        }
+        // std::pair<ID_t, Result> res{-1, UnknownCommand};
+        // if(api_command_pair.first)
+        // {
+        //     res = api_command_pair.first->ExecutionCommand(JsonParser(std::move(api_command_pair.second)));
+        // }
 
-        SendResult(res.first, res.second);
+        // SendResult(res.first, res.second);
     }
     
     co_return;
@@ -52,7 +52,7 @@ CoroTaskVoid Session::AsyncWrite(buffer_ptr write_bf)
 {
     auto status = co_await Connection.async_write(Sheduler, write_bf);
 
-    if(status.type != WakeUp)
+    if(!status)
     {
         Close();
     }
