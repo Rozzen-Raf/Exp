@@ -1,6 +1,6 @@
 #include "Sheduler.h"
 //-----------------------------------------------------------------
-void Sheduler::Run()
+void Sheduler::Run(bool block)
 {
     for(auto&& it : Workers)
     {
@@ -12,7 +12,8 @@ void Sheduler::Run()
         task_run(task);
     }
 
-    Processor->Run();
+    if(block)
+        Processor->Run();
 }
 //-----------------------------------------------------------------
 

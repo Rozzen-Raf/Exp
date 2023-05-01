@@ -31,7 +31,17 @@ CoroTaskVoid Session::AsyncRead(bool loop)
             ERROR(Session, status.err_message);
             Close();
         }
-        Serv->RedirectAll(Connection.Desc(), read_buffer);
+        //Serv->RedirectAll(Connection.Desc(), read_buffer);
+
+        auto api_command_pair = ParseJsonApiCommand(read_buffer);
+
+        std::pair<ID_t, Result> res{-1, UnknownCommand};
+        if(api_command_pair.first)
+        {
+            res = api_command_pair.first->ExecutionCommand(JsonParser(std::move(api_command_pair.second)));
+        }
+
+        SendResult(res.first, res.second);
     }
     
     co_return;
@@ -56,6 +66,18 @@ void Session::Close() noexcept
     LOG(Session, "Close session");
     if(Serv)
         Serv->CloseSession(Connection.Desc());
+}
+//------------------------------------------------
+
+void Session::SendResult(ID_t message_id, Result res)
+{
+    JsonParser parser;
+    parser.SetValue("MessageID", std::move(message_id));
+    parser.SetValue("ResultID", std::move(res));
+
+    buffer_ptr buffer = ConvertStringToBuffer(parser.Dump());
+
+    Sheduler->CoroStart(AsyncWrite(buffer));
 }
 //------------------------------------------------
 //------------------------------------------------

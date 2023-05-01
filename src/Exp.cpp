@@ -1,12 +1,12 @@
 ﻿#include "ThreadPool.h"
 #include "Sheduler.h"
+#include "JsonParser.h"
+#include "MetaTypeInclude.h"
 #include "ChainableTask.h"
-#include <string.h>
 #include "EpollWorker.h"
 #include <cstddef>
 #include "Socket.h"
-#include "JsonParser.h"
-#include "MetaTypeInclude.h"
+
 
 void signalHandler( int signum ) {
    std::cout << "Interrupt signal (" << signum << ") received.\n";
@@ -48,7 +48,7 @@ int main()
         RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<EpollWorker>>(worker);
 
         auto args = Arguments<Server>(sheduler, mediator, server_config);
-        ServerSharedPtr server = std::static_pointer_cast<Server>(MetaData::GetMetaData()->Create(type_opt.value(), args));
+        ServerSharedPtr server = std::static_pointer_cast<Server>(MetaData::GetMetaData()->Create(type_opt.value(), &args));
         sheduler->CoroStart(server->AsyncServerRun());
 		sheduler->Run();
 	}

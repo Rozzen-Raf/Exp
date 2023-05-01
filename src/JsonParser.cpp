@@ -4,32 +4,37 @@
 JsonParser::JsonParser(json&& data) : Data(data)
 {}
 //-----------------------------------------------------------
-void JsonParser::Parse(buffer& data)
+bool JsonParser::Parse(buffer_view_const& data)
 {
     try
     {
         Data = json::parse(data);
+        return true;
     }
     catch(const std::exception& e)
     {
         ERROR(JsonParser, e.what());
+        return false;
     }
 }
 //-----------------------------------------------------------
 
-void JsonParser::ParseFromFile(StringView file_name)
+bool JsonParser::ParseFromFile(StringView file_name)
 {
     try
     {
         std::ifstream f(file_name.data());
 
         Data = json::parse(f);
+        return true;
     }
     catch(const std::exception& e)
     {
         ERROR(JsonParser, e.what());
+        return false;
     }
 }
+//-----------------------------------------------------------
 //-----------------------------------------------------------
 //-----------------------------------------------------------
 //-----------------------------------------------------------

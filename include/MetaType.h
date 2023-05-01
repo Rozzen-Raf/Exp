@@ -65,17 +65,18 @@ public:
 class ICreator
 {
 public:
-    virtual std::shared_ptr<void> Create(IArguments&) const = 0;
+    virtual std::shared_ptr<void> Create(IArguments*) const = 0;
 };
 DECLARE_SHARED_PTR(ICreator)
 template<typename T, typename Base = ICreator>
 class ObjectCreator : public Base
 {
 public:
-    virtual std::shared_ptr<void> Create(IArguments& args) const final
+    virtual std::shared_ptr<void> Create(IArguments* args) const final
     {
         auto obj = std::make_shared<T>();
-        args.SetArgs(obj.get());
+        if(args)
+            args->SetArgs(obj.get());
         return std::static_pointer_cast<void>(obj);
     }
 };
@@ -89,7 +90,7 @@ public:
 
     }
 
-    std::shared_ptr<void> Construct(IArguments& args) const
+    std::shared_ptr<void> Construct(IArguments* args) const
     {
         return Creator->Create(args);
     }
@@ -122,7 +123,7 @@ public:
         return metatype;
     }
 
-    std::shared_ptr<void> Create(const std::string& str, IArguments& args)
+    std::shared_ptr<void> Create(const std::string& str, IArguments* args = nullptr)
     {
         auto&& find_iter = MetaMaps->find(str);
         if (find_iter == MetaMaps->end())

@@ -23,7 +23,7 @@ class Sheduler
 public:
     explicit Sheduler(ProcessorSharedPtr processor);
 
-	void Run();
+	void Run(bool block = true);
 
 	void Stop();
 

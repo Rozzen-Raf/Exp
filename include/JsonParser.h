@@ -9,8 +9,8 @@ public:
     JsonParser() = default;
     explicit JsonParser(json&& data);
     //JsonParser(JsonParser&& )
-    void Parse(buffer& data);
-    void ParseFromFile(StringView file_name);
+    bool Parse(buffer_view_const& data);
+    bool ParseFromFile(StringView file_name);
 
     template<class T>
     std::optional<T> GetValue(const String& key) const
@@ -25,6 +25,23 @@ public:
             ERROR(JsonParser, e.what());
             return {};
         }
+    }
+
+    template<typename T>
+	inline void SetValue(const String& key_name, const T& value)
+	{
+		Data[key_name] = value;
+	}
+
+	template<typename T>
+	inline void SetValue(String&& key_name, T&& value)
+	{
+		Data[std::move(key_name)] = std::move(value);
+	}
+
+    inline String Dump()
+    {
+        return Data.dump();
     }
 private:
     json Data;

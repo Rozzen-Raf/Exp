@@ -27,6 +27,7 @@
 #include <span>
 #include <optional>
 #include <fstream>
+#include <algorithm>
 #ifdef __linux__
 #include <sys/epoll.h>
 #include <sys/types.h>
@@ -61,11 +62,6 @@ enum WorkerType
 enum StatusType
 {
 	Error, WakeUp, Wait, HangUp
-};
-
-enum Result
-{
-	Failed, Success
 };
 
 struct AwaitableResult
@@ -104,5 +100,8 @@ struct AwaitableData
 #define ERROR(a,m) std::cerr << #a << ": " << m << std::endl;
 
 using buffer_view = std::span<std::byte>;
+using buffer_view_const = std::span<const std::byte>;
 using buffer = std::vector<std::byte>;
 using buffer_ptr = std::shared_ptr<buffer>;
+
+buffer_ptr ConvertStringToBuffer(String&& string);
