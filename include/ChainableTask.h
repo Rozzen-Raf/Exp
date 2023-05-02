@@ -67,7 +67,7 @@ struct CoroTaskVoid
 private:
 	friend class Task;
 	friend class Sheduler;
-	func_t GetFunc()const noexcept { return [&]() {if (handle_) handle_.resume(); }; }
+	func_t GetFunc()const noexcept { return [this]() {if (handle_) handle_.resume(); }; }
 
 	void SetDoneCallback(func_t callback)
 	{
@@ -156,7 +156,7 @@ struct CoroTask
 private:
 	friend class Task;
 	friend class Sheduler;
-	func_t GetFunc()const noexcept { return [&]() {if (handle_) handle_.resume(); }; }
+	func_t GetFunc()const noexcept { return [this]() {if (handle_) handle_.resume(); }; }
 
 	void SetDoneCallback(func_t callback)
 	{

@@ -2,7 +2,7 @@
 
 TEST_CASE("PrintCommandTest", "PrintCommandTest")
 {
-    IPEndPoint endpoint("127.0.0.1", 1111);
+    IPEndPoint endpoint("127.0.0.1", 11111);
 
     Socket client(IPv::IPv4);
     bool status = client.Create();

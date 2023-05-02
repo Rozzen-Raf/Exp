@@ -39,6 +39,10 @@ private:
     using Node = StackLinkedList<FreeHeader>::Node;
     StackLinkedList<FreeHeader> m_freeList;
 
+    std::size_t m_totalSize;
+    std::size_t m_used;   
+    std::size_t m_peak;
+
     void * m_start_ptr = nullptr;
     std::size_t m_chunkSize;
 public:
@@ -55,10 +59,6 @@ public:
     void Reset();
 private:
     PoolAllocator(PoolAllocator &poolAllocator);
-
-    std::size_t m_totalSize;
-    std::size_t m_used;   
-    std::size_t m_peak;
 };
 
 template<typename T, class Allocator, typename... Args>
