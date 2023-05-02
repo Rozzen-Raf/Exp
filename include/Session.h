@@ -22,6 +22,7 @@ private:
     Socket Connection;
     ShedulerSharedPtr Sheduler;
     Server* Serv;
+    std::atomic<bool> IsWorking;
 };
 DECLARE_SHARED_PTR(Session)
 #endif // SESSION_H

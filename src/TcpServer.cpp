@@ -17,6 +17,14 @@ IsWorking(true)
 }
 //--------------------------------------------------------
 
+TcpServer::~TcpServer()
+{
+    LOG(TcpServer, "destroy");
+    IsWorking = false;
+    Sessions.clear();
+}
+//--------------------------------------------------------
+
 CoroTaskVoid TcpServer::AsyncServerRun()
 {
     if(!listener.Create())
@@ -30,10 +38,14 @@ CoroTaskVoid TcpServer::AsyncServerRun()
     while(IsWorking)
     {
         auto status = co_await listener.AsyncAccept(Sheduler);
+
+        if(!IsWorking)
+            co_return;
+
         if(!status)
         {
             ERROR(TcpServer, status.err_message);
-            continue;
+            co_return;
         }
 
         if(!std::holds_alternative<ID_t>(status.id))

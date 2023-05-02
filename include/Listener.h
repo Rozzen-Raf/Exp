@@ -9,7 +9,6 @@ public:
     explicit Listener(RegisterMediatorBasePtr reg) noexcept: Register(reg){}
     CoroTask<AwaitableResult> AsyncAccept(ShedulerSharedPtr shared) noexcept;
 
-
     inline void SetRegister(RegisterMediatorBasePtr reg) noexcept { Register = reg;}
 
 private:

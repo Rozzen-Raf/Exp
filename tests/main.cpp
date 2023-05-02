@@ -9,8 +9,7 @@ int main( int argc, char* argv[] )
 
     try{
         RegisterAllMetaClass();
-		ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool>>(8);
-		ShedulerSharedPtr sheduler = std::make_shared<Sheduler>(processor);
+		auto sheduler = GetSheduler();
 
 		EpollWorkerSharedPtr worker = std::make_shared<EpollWorker>();
 		sheduler->RegisterWorker(worker);
@@ -19,7 +18,7 @@ int main( int argc, char* argv[] )
             \"Server\" : {\
                 \"Host\" : \"127.0.0.1\",\
                 \"Port\" : 1111,\
-                \"Type\" : \"TcpServer\",\
+                \"Type\" : \"TcpServer\"\
             }\
 		}";
 
@@ -48,7 +47,8 @@ int main( int argc, char* argv[] )
         auto args = Arguments<Server>(sheduler, mediator, server_config);
         ServerSharedPtr server = std::static_pointer_cast<Server>(MetaData::GetMetaData()->Create(type_opt.value(), &args));
         sheduler->CoroStart(server->AsyncServerRun());
-		sheduler->Run();
+		sheduler->Run(false);
+        return session.run();
 	}
 	catch (const std::exception& ex)
     {
@@ -58,6 +58,5 @@ int main( int argc, char* argv[] )
     {
         std::cerr << "Unknown exception.\n";
     }
-
-    return session.run();
+    return 1;
 }

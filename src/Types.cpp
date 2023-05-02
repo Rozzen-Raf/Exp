@@ -1,6 +1,6 @@
 #include "Types.h"
 
-buffer_ptr ConvertStringToBuffer(String&& string)
+buffer_ptr ConvertStringToBuffer(const String& string)
 {
     buffer_ptr bytes = std::make_shared<buffer>();
 

@@ -14,35 +14,40 @@ Session::Session(Session&& right) : Connection(std::move(right.Connection)), She
 //------------------------------------------------
 Session::~Session()
 {
-    ///LOG(Session, "destroy");
+    IsWorking = false;
 }
 //------------------------------------------------
 
 CoroTaskVoid Session::AsyncRead(bool loop)
 {
-    while(loop)
-    {
+    IsWorking = loop;
+    
+    do{
         buffer_ptr read_buffer = std::make_shared<buffer>(256);
         auto status = co_await Connection.async_read(Sheduler, read_buffer);
+
+        if(!IsWorking)
+            co_return;
 
         if(!status)
         {
             loop = false;
             ERROR(Session, status.err_message);
             Close();
+            co_return;
         }
-        Serv->RedirectAll(Connection.Desc(), read_buffer);
+        //Serv->RedirectAll(Connection.Desc(), read_buffer);
 
-        // auto api_command_pair = ParseJsonApiCommand(read_buffer);
+        auto api_command_pair = ParseJsonApiCommand(read_buffer);
 
-        // std::pair<ID_t, Result> res{-1, UnknownCommand};
-        // if(api_command_pair.first)
-        // {
-        //     res = api_command_pair.first->ExecutionCommand(JsonParser(std::move(api_command_pair.second)));
-        // }
+        std::pair<ID_t, Result> res{-1, Result::UnknownCommand};
+        if(api_command_pair.first)
+        {
+            res = api_command_pair.first->ExecutionCommand(JsonParser(std::move(api_command_pair.second)));
+        }
 
-        // SendResult(res.first, res.second);
-    }
+        SendResult(res.first, res.second);
+    }while(loop && IsWorking);
     
     co_return;
 }

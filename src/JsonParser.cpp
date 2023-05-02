@@ -19,6 +19,24 @@ bool JsonParser::Parse(buffer_view_const& data)
 }
 //-----------------------------------------------------------
 
+bool JsonParser::Parse(buffer_ptr data)
+{
+    if(!data || data->empty())
+        return false;
+
+    try
+    {
+        Data = json::parse(*data.get());
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        ERROR(JsonParser, e.what());
+        return false;
+    }
+}
+//-----------------------------------------------------------
+
 bool JsonParser::ParseFromFile(StringView file_name)
 {
     try

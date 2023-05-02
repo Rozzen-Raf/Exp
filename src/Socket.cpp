@@ -112,8 +112,7 @@ CoroTask<AwaitableResult> Socket::async_write(ShedulerSharedPtr sheduler, buffer
             auto status = co_await sheduler->event(EPOLL, fd_);
             if(!status)
                 co_return status;
-            else
-                continue;
+
             continue;
         }
         else if(cnt > 0)

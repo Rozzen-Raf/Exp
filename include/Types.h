@@ -104,4 +104,4 @@ using buffer_view_const = std::span<const std::byte>;
 using buffer = std::vector<std::byte>;
 using buffer_ptr = std::shared_ptr<buffer>;
 
-buffer_ptr ConvertStringToBuffer(String&& string);
+buffer_ptr ConvertStringToBuffer(const String& string);

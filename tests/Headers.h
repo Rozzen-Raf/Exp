@@ -5,3 +5,5 @@
 #include "MetaTypeInclude.h"
 #include "ChainableTask.h"
 #include "EpollWorker.h"
+
+ShedulerSharedPtr GetSheduler();

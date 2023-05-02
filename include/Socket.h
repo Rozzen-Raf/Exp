@@ -8,7 +8,7 @@
 class Socket
 {
 public:
-	static constexpr uint64_t BUFFER_SIZE = 1024;
+	static constexpr uint64_t MSG_SIZE = 1024;
 
     Socket() noexcept
     {
