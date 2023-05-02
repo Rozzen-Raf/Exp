@@ -17,10 +17,12 @@ void Sheduler::Run(bool block)
 }
 //-----------------------------------------------------------------
 
-Sheduler::Sheduler(ProcessorSharedPtr processor) : Processor(processor)
+Sheduler::Sheduler(ProcessorSharedPtr processor) : Processor(processor), AllocationArea(16777216, sizeof(Task))
 {
     std::hash<std::thread::id> hasher;
     OwnerThreadID = hasher(std::this_thread::get_id());
+
+    AllocationArea.Init();
 }
 //-----------------------------------------------------------------
 
@@ -72,7 +74,7 @@ void Sheduler::emit(AwaitableData* data, WorkerBase* worker)
     };
     ShedulerTask e{func};
 
-    TaskSharedPtr task = std::make_shared<Task>(std::move(e), Processor);
+    TaskSharedPtr task = make_custom_shared<Task>(AllocationArea, std::move(e), Processor);
     task_run(task);
 }
 //-----------------------------------------------------------------

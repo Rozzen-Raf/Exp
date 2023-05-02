@@ -48,12 +48,12 @@ CoroTaskVoid TcpServer::AsyncServerRun()
             co_return;
         }
 
-        if(!std::holds_alternative<ID_t>(status.id))
-            continue;
+//        if(!std::holds_alternative<ID_t>(status.id))
+//            continue;
 
         {
             lock_t l(mutex);
-            ID_t id = std::get<ID_t>(status.id);
+            ID_t id = status.id;
             Socket s(IPv::IPv4, id);
             auto session_iter = Sessions.emplace(id, Session(this, std::move(s), Sheduler));
 

@@ -28,6 +28,9 @@
 #include <optional>
 #include <fstream>
 #include <algorithm>
+#include <list>
+#include <set>
+#include <unordered_set>
 #ifdef __linux__
 #include <sys/epoll.h>
 #include <sys/types.h>
@@ -51,7 +54,8 @@ using func_t = std::function<void()> ;
 using String = std::string;
 using StringView = std::string_view;
 using ID_t = int;
-using UID_t = std::variant<String, ID_t, int64_t>;
+//using UID_t = std::variant<String, ID_t, int64_t>;
+using UID_t = int64_t;
 
 enum WorkerType
 {

@@ -26,8 +26,8 @@ void EpollWorker::RegAwaitable(AwaitableData* data) noexcept
     if (data->type != GetType())
         return;
 
-    if(!std::holds_alternative<ID_t>(data->EventID))
-        return;
+//    if(!std::holds_alternative<ID_t>(data->EventID))
+//        return;
 
     lock_t lock(mutex);
 
@@ -42,8 +42,8 @@ void EpollWorker::UnregAwaitable(AwaitableData* data) noexcept
         return;
     }
 
-    if(!std::holds_alternative<ID_t>(data->EventID))
-        return;
+//    if(!std::holds_alternative<ID_t>(data->EventID))
+//        return;
 
     lock_t lock(mutex);
 

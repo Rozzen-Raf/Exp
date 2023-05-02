@@ -36,17 +36,17 @@ CoroTaskVoid Session::AsyncRead(bool loop)
             Close();
             co_return;
         }
-        //Serv->RedirectAll(Connection.Desc(), read_buffer);
+        Serv->RedirectAll(Connection.Desc(), read_buffer);
 
-        auto api_command_pair = ParseJsonApiCommand(read_buffer);
+//        auto api_command_pair = ParseJsonApiCommand(read_buffer);
 
-        std::pair<ID_t, Result> res{-1, Result::UnknownCommand};
-        if(api_command_pair.first)
-        {
-            res = api_command_pair.first->ExecutionCommand(JsonParser(std::move(api_command_pair.second)));
-        }
+//        std::pair<ID_t, Result> res{-1, Result::UnknownCommand};
+//        if(api_command_pair.first)
+//        {
+//            res = api_command_pair.first->ExecutionCommand(JsonParser(std::move(api_command_pair.second)));
+//        }
 
-        SendResult(res.first, res.second);
+//        SendResult(res.first, res.second);
     }while(loop && IsWorking);
     
     co_return;

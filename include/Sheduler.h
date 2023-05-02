@@ -3,6 +3,7 @@
 #include "Worker.h"
 #include "Awaitable.h"
 #include "ChainableTask.h"
+#include "Allocator.h"
 
 class Sheduler
 {
@@ -31,7 +32,8 @@ public:
 	void CoroStart(T&& task)
 	{
         lock_t lock(mutex);
-		auto task_ptr = std::make_shared<Task>(std::move(task), Processor);
+		//auto task_ptr = std::make_shared<Task>(std::move(task), Processor);
+		auto task_ptr = make_custom_shared<Task>(AllocationArea, std::move(task), Processor);
 		tasks_map.insert({ task_ptr->GetId(), task_ptr });
 		task_run(task_ptr,
             [this](Task* task)
@@ -54,6 +56,7 @@ private:
     mutex_t mutex;
     size_t OwnerThreadID;
     ProcessorSharedPtr Processor;
+	PoolAllocator AllocationArea;
 };
 DECLARE_SHARED_PTR(Sheduler)
 DECLARE_WEAK_PTR(Sheduler)
