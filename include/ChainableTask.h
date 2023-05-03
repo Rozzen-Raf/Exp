@@ -1,155 +1,271 @@
 #pragma once
 #include "Types.h"
 #include "FinalContinuation.h"
-struct CoroTaskVoid
+
+class BrokenPromise : public std::logic_error
 {
-	struct CoroTaskPromise
-	{
-		using handle_t = std::coroutine_handle<CoroTaskPromise>;
-		CoroTaskVoid get_return_object()
-		{
-			return CoroTaskVoid{ handle_t::from_promise(*this) };
-		}
-
-		std::suspend_always initial_suspend() noexcept { return {}; }
-		AwaitableFinalContinuation final_suspend() noexcept {
-			return {}; 
-		}
-		
-		void unhandled_exception() 
-		{
-			auto exc = std::current_exception();
-			std::rethrow_exception(exc);
-		}
-		void return_void() {}
-
-		~CoroTaskPromise()
-		{
-		}
-
-		void set_done_callback(func_t callback) noexcept { done_callback = callback; }
-
-	private:
-		friend struct CoroTaskVoid;
-		friend struct AwaitableFinalContinuation;
-		std::coroutine_handle<> continuation = std::noop_coroutine();
-		std::coroutine_handle<> handle = std::noop_coroutine();
-		func_t done_callback;
-	};
-
-	using promise_type = CoroTaskPromise;
-	explicit CoroTaskVoid(promise_type::handle_t handle) : handle_(handle) 
-	{
-		handle.promise().handle = handle_;
-	}
-	CoroTaskVoid(const CoroTaskVoid&) = delete;
-	CoroTaskVoid(CoroTaskVoid&& task)
-		: handle_(std::exchange(task.handle_, nullptr)) {}
-	CoroTaskVoid& operator=(const CoroTaskVoid&) = delete;
-	CoroTaskVoid& operator=(CoroTaskVoid&& task) {
-		handle_ = std::exchange(task.handle_, nullptr);
-		return *this;
-	}
-	
-	~CoroTaskVoid()
-	{
-		if (handle_)
-			handle_.destroy();
-	}
-	bool await_ready() noexcept { return false; }
-	std::coroutine_handle<> await_suspend(std::coroutine_handle<> caller) {
-		handle_.promise().continuation = caller;
-		return handle_;
-	}
-	void await_resume() {}
-
-	void run() noexcept { if(handle_) handle_.resume();}
-private:
-	friend class Task;
-	friend class Sheduler;
-	func_t GetFunc()const noexcept { return [this]() {if (handle_) handle_.resume(); }; }
-
-	void SetDoneCallback(func_t callback)
-	{
-		if (handle_)
-			handle_.promise().set_done_callback(callback);
-	}
-
-	const promise_type::handle_t& GetHandle()const  noexcept { return handle_; }
-private:
-	promise_type::handle_t handle_;
+public:
+	BrokenPromise()
+		: std::logic_error("broken promise")
+	{}
 };
 
 template<typename T>
-struct CoroTask
+class CoroTask;
+
+class CoroTaskPromiseBase
 {
-	struct CoroTaskPromise
+public:	
+	std::suspend_always initial_suspend() noexcept { return {}; }
+
+	AwaitableFinalContinuation final_suspend() noexcept {
+		return {}; 
+	}
+
+	void set_done_callback(func_t callback) noexcept { done_callback = callback; }
+
+	void set_continuation(std::coroutine_handle<> cont) noexcept
 	{
-		using handle_t = std::coroutine_handle<CoroTaskPromise>;
-		CoroTask get_return_object()
+		continuation = cont;
+	}
+
+	std::coroutine_handle<> get_continuation() const noexcept
+	{
+		return continuation;
+	}
+private:
+	template <typename T>
+	friend class CoroTask;
+	friend class AwaitableFinalContinuation;
+	std::coroutine_handle<> continuation = std::noop_coroutine();
+	func_t done_callback;
+};
+
+template<typename T>
+class CoroTaskPromise : public CoroTaskPromiseBase
+{
+public:
+	using handle_t = std::coroutine_handle<CoroTaskPromise<T>>;
+
+	CoroTaskPromise() noexcept {}
+
+	~CoroTaskPromise()
+	{
+		switch (ResultType)
 		{
-			return CoroTask{ handle_t::from_promise(*this) };
+		case result_type::Value:
+			Value.~T();
+			break;
+		case result_type::Exception:
+			Exception.~exception_ptr();
+			break;
+		default:
+			break;
+		}
+	}
+
+	CoroTask<T> get_return_object() noexcept
+	{
+		return CoroTask<T>{ handle_t::from_promise(*this) };	
+	}
+
+	void unhandled_exception() noexcept
+	{
+		::new (static_cast<void*>(std::addressof(Exception))) std::exception_ptr(
+			std::current_exception());
+		ResultType = result_type::Exception;
+	}
+
+	template<
+		typename VALUE,
+		typename = std::enable_if_t<std::is_convertible_v<VALUE&&, T>>>
+	void return_value(VALUE&& value)
+		noexcept(std::is_nothrow_constructible_v<T, VALUE&&>)
+	{
+		::new (static_cast<void*>(std::addressof(Value))) T(std::forward<VALUE>(value));
+		ResultType = result_type::Value;
+	}
+
+	T& result() &
+	{
+		if (ResultType == result_type::Exception)
+		{
+			std::rethrow_exception(Exception);
 		}
 
-		std::suspend_always initial_suspend() noexcept { return {}; }
-		AwaitableFinalContinuation final_suspend() noexcept {
-			return {}; 
-		}
-		
-		void unhandled_exception() 
+		assert(ResultType == result_type::Value);
+
+		return Value;
+	}
+
+	using rvalue_type = std::conditional_t<
+				std::is_arithmetic_v<T> || std::is_pointer_v<T>,
+				T,
+				T&&>;
+
+	rvalue_type result() &&
+	{
+		if (ResultType == result_type::Exception)
 		{
-			auto exc = std::current_exception();
-			std::rethrow_exception(exc);
-		}
-		void return_value(T&& val) 
-		{
-			value = std::forward<T>(val);
+			std::rethrow_exception(Exception);
 		}
 
-		~CoroTaskPromise()
-		{
-		}
+		assert(ResultType == result_type::Value);
 
-		void set_done_callback(func_t callback) noexcept { done_callback = callback; }
+		return std::move(Value);
+	}
 
-	private:
-		friend struct CoroTask;
-		friend struct AwaitableFinalContinuation;
-		std::coroutine_handle<> continuation = std::noop_coroutine();
-		std::coroutine_handle<> handle = std::noop_coroutine();
-		func_t done_callback;
-		T value;
+private:
+	enum class result_type{Empty, Value, Exception};
+
+	result_type ResultType = result_type::Empty;
+
+	union
+	{
+		T Value;
+		std::exception_ptr Exception;
 	};
+};
 
-	using promise_type = CoroTaskPromise;
+template<>
+class CoroTaskPromise<void> : public CoroTaskPromiseBase
+{
+public:
+	using handle_t = std::coroutine_handle<CoroTaskPromise<void>>;
+
+	CoroTaskPromise() noexcept = default;
+
+	CoroTask<void> get_return_object() noexcept;
+
+	void return_void() noexcept
+	{}
+
+	void unhandled_exception() noexcept
+	{
+		Exception = std::current_exception();
+	}
+
+	void result()
+	{
+		if (Exception)
+		{
+			std::rethrow_exception(Exception);
+		}
+	}
+
+private:
+
+	std::exception_ptr Exception;
+
+};
+
+template<typename T>
+class CoroTask
+{
+public:
+	using promise_type = CoroTaskPromise<T>;
+private:
+	struct awaitable_base
+		{
+			std::coroutine_handle<promise_type> m_coroutine;
+
+			awaitable_base(std::coroutine_handle<promise_type> coroutine) noexcept
+				: m_coroutine(coroutine)
+			{}
+
+			bool await_ready() const noexcept
+			{
+				return !m_coroutine || m_coroutine.done();
+			}
+
+			std::coroutine_handle<> await_suspend(
+				std::coroutine_handle<> awaitingCoroutine) noexcept
+			{
+				m_coroutine.promise().set_continuation(awaitingCoroutine);
+				return m_coroutine;
+			}
+		};
+public:
+
 	explicit CoroTask(promise_type::handle_t handle) : handle_(handle) 
 	{
-		handle.promise().handle = handle_;
 	}
 	CoroTask(const CoroTask&) = delete;
 	CoroTask(CoroTask&& task)
 		: handle_(std::exchange(task.handle_, nullptr)) {}
+
 	CoroTask& operator=(const CoroTask&) = delete;
 	CoroTask& operator=(CoroTask&& task) {
-		handle_ = std::exchange(task.handle_, nullptr);
+		if (std::addressof(task) != this)
+		{
+			if(handle_)
+			{
+				handle_.destroy();
+			}
+
+			handle_ = std::exchange(task.handle_, nullptr);
+		}
 		return *this;
 	}
 	
 	~CoroTask()
 	{
-		if (handle_)
-			handle_.destroy();
+        if (handle_)
+		{
+			LOG(CoroTask, handle_.address());
+            handle_.destroy();
+			handle_ = nullptr;
+		}
 	}
-	bool await_ready() noexcept { return false; }
-	std::coroutine_handle<> await_suspend(std::coroutine_handle<> caller) {
-		handle_.promise().continuation = caller;
-		return handle_;
+	// bool await_ready() noexcept { return false; }
+	// std::coroutine_handle<> await_suspend(auto caller) {
+	// 	handle_.promise().continuation = caller;
+	// 	return handle_;
+	// }
+
+	auto operator co_await() const & noexcept
+	{
+		struct awaitable : awaitable_base
+		{
+			using awaitable_base::awaitable_base;
+
+			decltype(auto) await_resume()
+			{
+				if (!this->m_coroutine)
+				{
+					throw BrokenPromise{};
+				}
+
+				return this->m_coroutine.promise().result();
+			}
+		};
+
+		return awaitable{ handle_ };
 	}
 
-	T&& await_resume() 
+	auto operator co_await() const && noexcept
 	{
-		if(handle_)
-			return std::move(handle_.promise().value);
+		struct awaitable : awaitable_base
+		{
+			using awaitable_base::awaitable_base;
+
+			decltype(auto) await_resume()
+			{
+				if (!this->m_coroutine)
+				{
+					throw BrokenPromise{};
+				}
+
+				return std::move(this->m_coroutine.promise()).result();
+			}
+		};
+
+		return awaitable{ handle_ };
+	}
+
+	bool is_ready() const noexcept
+	{
+		return !handle_ || handle_.done();
 	}
 
 	void run() noexcept { if(handle_) handle_.resume();}
@@ -168,3 +284,10 @@ private:
 private:
 	promise_type::handle_t handle_;
 };
+
+inline CoroTask<void> CoroTaskPromise<void>::get_return_object() noexcept
+{
+	return CoroTask<void>{ handle_t::from_promise(*this) };
+}
+
+using CoroTaskVoid = CoroTask<void>;

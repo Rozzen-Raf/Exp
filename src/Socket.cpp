@@ -63,7 +63,7 @@ bool Socket::Listen(const IPEndPoint& endpoint)
 CoroTask<AwaitableResult> Socket::async_read(ShedulerSharedPtr sheduler, buffer_ptr read_bf)
 {
     if(!read_bf || read_bf->empty())
-        co_return {Error, fd_, "Read buffer is empty", -1};
+        co_return AwaitableResult{Error, fd_, "Read buffer is empty", -1};
 
     while(true)
     {
@@ -71,7 +71,7 @@ CoroTask<AwaitableResult> Socket::async_read(ShedulerSharedPtr sheduler, buffer_
 
         if(cnt == -1 && errno != EAGAIN)
         {
-            co_return {Error, fd_, "Failes too read data from socket", errno};
+            co_return AwaitableResult{Error, fd_, "Failes too read data from socket", errno};
         }
 
         if(cnt == 0)
@@ -89,14 +89,14 @@ CoroTask<AwaitableResult> Socket::async_read(ShedulerSharedPtr sheduler, buffer_
         break;
     }
 
-    co_return {WakeUp};
+    co_return AwaitableResult{WakeUp};
 }
 //----------------------------------------------------------
 
 CoroTask<AwaitableResult> Socket::async_write(ShedulerSharedPtr sheduler, buffer_ptr write_bf)
 {
     if(!write_bf || write_bf->empty())
-        co_return {Error, fd_, "Write buffer is empty", -1};
+        co_return AwaitableResult{Error, fd_, "Write buffer is empty", -1};
 
     ssize_t written_bytes = 0;
     while(written_bytes < write_bf->size())
@@ -105,7 +105,7 @@ CoroTask<AwaitableResult> Socket::async_write(ShedulerSharedPtr sheduler, buffer
 
         if(cnt == -1 && errno != EAGAIN)
         {
-            co_return {Error, fd_, "Failes too write data from socket", errno};
+            co_return AwaitableResult{Error, fd_, "Failes too write data from socket", errno};
         }
         else if(cnt == -1 && errno == EAGAIN)
         {
@@ -121,7 +121,7 @@ CoroTask<AwaitableResult> Socket::async_write(ShedulerSharedPtr sheduler, buffer
         }
     }
 
-    co_return {WakeUp};
+    co_return AwaitableResult{WakeUp};
 }
 //----------------------------------------------------------
 

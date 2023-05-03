@@ -36,7 +36,6 @@ CoroTaskVoid Session::AsyncRead(bool loop)
             Close();
             co_return;
         }
-        //Serv->RedirectAll(Connection.Desc(), read_buffer);
 
        auto api_command_pair = ParseJsonApiCommand(read_buffer);
 

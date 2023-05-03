@@ -7,12 +7,12 @@ CoroTask<AwaitableResult> Listener::AsyncAccept(ShedulerSharedPtr sheduler) noex
 	while((ret = accept4(fd_, nullptr, nullptr, SOCK_NONBLOCK)) == -1)
 	{
         if(errno != EAGAIN && errno != EWOULDBLOCK)
-            co_return {Error, fd_, "Failed to accept", errno};
+            co_return AwaitableResult{Error, fd_, "Failed to accept", errno};
 
 		auto status = co_await sheduler->event(EPOLL, fd_);
 		if(!status)
             co_return status;
 	}
     Register->Register(ret);
-    co_return {WakeUp, ret, "", 0};
+    co_return AwaitableResult{WakeUp, ret, "", 0};
 }

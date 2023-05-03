@@ -48,9 +48,6 @@ CoroTaskVoid TcpServer::AsyncServerRun()
             co_return;
         }
 
-//        if(!std::holds_alternative<ID_t>(status.id))
-//            continue;
-
         {
             lock_t l(mutex);
             ID_t id = status.id;

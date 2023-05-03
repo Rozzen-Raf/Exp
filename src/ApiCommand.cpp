@@ -11,7 +11,7 @@ std::pair<ID_t, Result> Print::ExecutionCommand(const JsonParser& json_data)
     if(!print_data.has_value() || !message_id.has_value())
         return {-1, Result::Failed};
 
-    LOG(Print, print_data.value());
+    //LOG(Print, print_data.value());
 
     return std::make_pair(message_id.value(), Result::Success);
 }
