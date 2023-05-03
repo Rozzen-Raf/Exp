@@ -16,3 +16,19 @@ CoroTask<AwaitableResult> Listener::AsyncAccept(ShedulerSharedPtr sheduler) noex
     Register->Register(ret);
     co_return AwaitableResult{WakeUp, ret, "", 0};
 }
+//--------------------------------------------------------------------------------------
+AwaitableResult Listener::Accept() noexcept
+{
+    int ret;
+    std::cout << "async_accept start" << std::endl;
+    while((ret = accept(fd_, nullptr, nullptr)) == -1)
+    {
+        if(errno != EAGAIN && errno != EWOULDBLOCK)
+            return {Error, fd_, "Failed to accept", errno};
+        continue;
+    }
+    Register->Register(ret);
+    return {Success, ret, "", 0};
+}
+//--------------------------------------------------------------------------------------
+

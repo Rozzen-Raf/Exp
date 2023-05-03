@@ -212,16 +212,10 @@ public:
 	{
         if (handle_)
 		{
-			LOG(CoroTask, handle_.address());
             handle_.destroy();
 			handle_ = nullptr;
 		}
 	}
-	// bool await_ready() noexcept { return false; }
-	// std::coroutine_handle<> await_suspend(auto caller) {
-	// 	handle_.promise().continuation = caller;
-	// 	return handle_;
-	// }
 
 	auto operator co_await() const & noexcept
 	{

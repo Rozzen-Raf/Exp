@@ -10,7 +10,7 @@ int get_errno(int fd) {
   }
 }
 //--------------------------------------------------------------------------------
-EpollWorker::EpollWorker()
+EpollWorker::EpollWorker(WorkFlag flag) : WorkerBase(flag)
 {
     if (EpollFd != -1)
         return;
@@ -67,39 +67,80 @@ CoroTaskVoid EpollWorker::Run()
         if(ret == 0)
             continue;
 
-        std::unordered_map<UID_t, AwaitableData*>::iterator find;
-        {
-            lock_t lock(mutex);
-            UID_t id = static_cast<ID_t>(ev.data.fd);
-            find = Awaitables.find(id);
-            if(find == Awaitables.end())
-                continue;
-        }
-
-        find->second->result.id = static_cast<ID_t>(ev.data.fd);
+//        std::unordered_map<UID_t, AwaitableData*>::iterator find;
+//        {
+//            lock_t lock(mutex);
+//            UID_t id = static_cast<ID_t>(ev.data.fd);
+//            find = Awaitables.find(id);
+//            if(find == Awaitables.end())
+//                continue;
+//        }
+        AwaitableResult result;
+       result.id = static_cast<ID_t>(ev.data.fd);
 
         if(ev.events & (EPOLLERR))
         {
-            find->second->result.err = get_errno(ev.data.fd);
-            find->second->result.type = Error;
-            find->second->result.err_message = "Socket error";
+            result.err = get_errno(ev.data.fd);
+            result.type = Error;
+            result.err_message = "Socket error";
         }
         else if(ev.events & (EPOLLHUP | EPOLLRDHUP))
         {
-            find->second->result.err = 0;
-            find->second->result.err_message = "Socket close";
-            find->second->result.type = HangUp;
+            result.err = 0;
+            result.err_message = "Socket close";
+            result.type = HangUp;
         }
         else if(ev.events & (EPOLLIN | EPOLLOUT))
         {
-            find->second->result.err = 0;
-            find->second->result.err_message = "";
-            find->second->result.type = WakeUp;
+            result.err = 0;
+            result.err_message = "";
+            result.type = WakeUp;
         }
 
-        Emit(find->second, this);
+        switch(Flag)
+        {
+            case AllAwaiablesEmit:
+                EmitWithAllFlags(std::move(result));
+                break;
+            case OnlyByID:
+                EmitWithOnlyByIDFlags(std::move(result));
+                break;
+        }
+
     }
     co_return;
+}
+//--------------------------------------------------------------------------------
+
+void EpollWorker::EmitWithAllFlags(AwaitableResult &&res)
+{
+    lock_t lock(mutex);
+
+    if(Awaitables.empty())
+        return;
+
+    for(auto await = Awaitables.begin(); await != Awaitables.end(); ++await)
+    {
+        await->second->result = std::move(res);
+        Emit(await->second, this);
+    }
+}
+//--------------------------------------------------------------------------------
+
+void EpollWorker::EmitWithOnlyByIDFlags(AwaitableResult &&res)
+{
+    std::unordered_map<UID_t, AwaitableData*>::iterator find;
+    {
+        lock_t lock(mutex);
+        UID_t id = res.id;
+        find = Awaitables.find(id);
+        if(find == Awaitables.end())
+            return;
+    }
+
+    find->second->result = std::move(res);
+
+    Emit(find->second, this);
 }
 //--------------------------------------------------------------------------------
 

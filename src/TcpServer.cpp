@@ -35,35 +35,36 @@ CoroTaskVoid TcpServer::AsyncServerRun()
     if(!listener.Listen(Addr))
         co_return;
 
-    while(IsWorking)
-    {
-        auto status = co_await listener.AsyncAccept(Sheduler);
+    //     Sheduler->CoroStart(AsyncSessionHandle());
+   while(IsWorking)
+   {
+       auto status = co_await listener.AsyncAccept(Sheduler);
 
-        if(!IsWorking)
-            co_return;
+       if(!IsWorking)
+           co_return;
 
-        if(!status)
-        {
-            ERROR(TcpServer, status.err_message);
-            co_return;
-        }
+       if(!status)
+       {
+           ERROR(TcpServer, status.err_message);
+           co_return;
+       }
 
-        {
-            lock_t l(mutex);
-            ID_t id = status.id;
-            Socket s(IPv::IPv4, id);
-            auto session_iter = Sessions.emplace(id, Session(this, std::move(s), Sheduler));
+       {
+           lock_t l(mutex);
+           ID_t id = status.id;
+           Socket s(IPv::IPv4, id);
+           auto session_iter = Sessions.emplace(id, Session(this, std::move(s), Sheduler));
 
-            if(session_iter.second)
-            {
-                Sheduler->CoroStart(session_iter.first->second.AsyncRead(true));
-            }
-        }
-    }    
+           if(session_iter.second)
+           {
+               Sheduler->CoroStart(session_iter.first->second.AsyncRead(true));
+           }
+       }
+   }
 
     co_return;
 }
-//--------------------------------------------------------
+//------------------------------------------------------------
 
 void TcpServer::SetArgs(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const JsonParser& json_data)
 {
@@ -99,18 +100,6 @@ void TcpServer::CloseSession(const ID_t &id) noexcept
 {
     lock_t l(mutex);
     Sessions.erase(id);
-}
-//--------------------------------------------------------
-
-void TcpServer::RedirectAll(const ID_t &id, buffer_ptr buf) noexcept
-{
-    lock_t l(mutex);
-    for(auto&& conn : Sessions)
-    {
-       if(conn.first == id)
-           continue;
-       Sheduler->CoroStart(conn.second.AsyncWrite(buf));
-    }
 }
 //--------------------------------------------------------
 //--------------------------------------------------------

@@ -11,7 +11,7 @@ int main( int argc, char* argv[] )
         RegisterAllMetaClass();
 		auto sheduler = GetSheduler();
 
-		EpollWorkerSharedPtr worker = std::make_shared<EpollWorker>();
+		EpollWorkerSharedPtr worker = std::make_shared<EpollWorker>(OnlyByID);
 		sheduler->RegisterWorker(worker);
 
         String config = "{\

@@ -11,7 +11,7 @@ public:
     //JsonParser(JsonParser&& )
     bool Parse(buffer_view_const& data);
     bool ParseFromFile(StringView file_name);
-    bool Parse(buffer_ptr data);
+    bool Parse(buffer& data);
 
     template<class T>
     std::optional<T> GetValue(const String& key) const

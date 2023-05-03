@@ -26,7 +26,7 @@ int main()
 		ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool>>(8);
 		ShedulerSharedPtr sheduler = std::make_shared<Sheduler>(processor);
 
-		EpollWorkerSharedPtr worker = std::make_shared<EpollWorker>();
+		EpollWorkerSharedPtr worker = std::make_shared<EpollWorker>(OnlyByID);
 		sheduler->RegisterWorker(worker);
 
         JsonParser parser;

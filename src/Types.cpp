@@ -12,3 +12,8 @@ buffer_ptr ConvertStringToBuffer(const String& string)
 
     return bytes;
 }
+
+ID_t GetLocalTime()
+{
+   return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}

@@ -1,13 +1,13 @@
 #include "JsonUtils.h"
 
-std::pair<ApiCommandBaseSharedPtr, json> ParseJsonApiCommand(buffer_ptr buffer)
+std::pair<ApiCommandBaseSharedPtr, json> ParseJsonApiCommand(buffer_view buffer)
 {
-    if(!buffer)
+    if(!buffer.size())
         return {nullptr, {}};
 
     try
     {
-        json data = json::parse(*buffer.get());
+        json data = json::parse(buffer);
 
         auto command = data.at("ApiCommand");
 

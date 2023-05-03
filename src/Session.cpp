@@ -24,7 +24,8 @@ CoroTaskVoid Session::AsyncRead(bool loop)
     
     do{
         buffer_ptr read_buffer = std::make_shared<buffer>(256);
-        auto status = co_await Connection.async_read(Sheduler, read_buffer);
+
+        auto status = co_await Connection.async_read(Sheduler, *read_buffer.get());
 
         if(!IsWorking)
             co_return;
@@ -37,15 +38,15 @@ CoroTaskVoid Session::AsyncRead(bool loop)
             co_return;
         }
 
-       auto api_command_pair = ParseJsonApiCommand(read_buffer);
+        auto api_command_pair = ParseJsonApiCommand(*read_buffer.get());
 
-       std::pair<ID_t, Result> res{-1, Result::UnknownCommand};
-       if(api_command_pair.first)
-       {
-           res = api_command_pair.first->ExecutionCommand(JsonParser(std::move(api_command_pair.second)));
-       }
+        std::pair<ID_t, Result> res{-1, Result::UnknownCommand};
+        if(api_command_pair.first)
+        {
+            res = api_command_pair.first->ExecutionCommand(JsonParser(std::move(api_command_pair.second)));
+        }
 
-       SendResult(res.first, res.second);
+        SendResult(res.first, res.second);
     }while(loop && IsWorking);
     
     co_return;
@@ -54,7 +55,8 @@ CoroTaskVoid Session::AsyncRead(bool loop)
 
 CoroTaskVoid Session::AsyncWrite(buffer_ptr write_bf)
 {
-    auto status = co_await Connection.async_write(Sheduler, write_bf);
+    auto write_buffer_view = std::as_bytes(std::span(*write_bf.get()));
+    auto status = co_await Connection.async_write(Sheduler, write_buffer_view);
 
     if(!status)
     {
@@ -62,6 +64,53 @@ CoroTaskVoid Session::AsyncWrite(buffer_ptr write_bf)
     }
     
     co_return;
+}
+//------------------------------------------------
+
+void Session::Read(bool loop)
+{
+    IsWorking = true;
+
+    do{
+        buffer read_buffer = buffer(256);
+        auto status =  Connection.read(read_buffer);
+
+        if(!IsWorking)
+            return;
+
+        if(!status)
+        {
+            loop = false;
+            ERROR(Session, status.err_message);
+            Close();
+            return;
+        }
+
+        auto api_command_pair = ParseJsonApiCommand(read_buffer);
+
+        std::pair<ID_t, Result> res{-1, Result::UnknownCommand};
+        if(api_command_pair.first)
+        {
+            res = api_command_pair.first->ExecutionCommand(JsonParser(std::move(api_command_pair.second)));
+        }
+
+        SendResult(res.first, res.second);
+    }while(loop && IsWorking);
+
+    return;
+}
+//------------------------------------------------
+
+void Session::Write(buffer_view_const write_bf)
+{
+    auto status = Connection.write(write_bf);
+
+    if(!status)
+    {
+        Close();
+    }
+
+    return;
 }
 //------------------------------------------------
 
@@ -79,9 +128,10 @@ void Session::SendResult(ID_t message_id, Result res)
     parser.SetValue("MessageID", std::move(message_id));
     parser.SetValue("ResultID", std::move(res));
 
-    buffer_ptr buffer = ConvertStringToBuffer(parser.Dump());
-
-    Sheduler->CoroStart(AsyncWrite(buffer));
+    auto dump = parser.Dump();
+    auto write_buffer_view = std::as_bytes(std::span(dump));
+    //Sheduler->CoroStart(AsyncWrite(buffer));
+    Write(write_buffer_view);
 }
 //------------------------------------------------
 //------------------------------------------------

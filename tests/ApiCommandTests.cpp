@@ -20,11 +20,10 @@ TEST_CASE("PrintCommandTest", "PrintCommandTest")
         }\
 	}";
 
-    auto write_bf = ConvertStringToBuffer(message);
-
+    auto write_bf = std::as_bytes(std::span(message));
     GetSheduler()->CoroStart(client.async_write(GetSheduler(), write_bf));
 
-    buffer_ptr read_bf = std::make_shared<buffer>(256);
+    buffer read_bf = buffer(256);
     auto result = client.read(read_bf);
 
     REQUIRE(result);

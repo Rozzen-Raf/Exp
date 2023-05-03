@@ -6,7 +6,7 @@ private:
 using mutex_t = std::recursive_mutex;
 using lock_t = std::unique_lock<mutex_t>;
 public:
-	EpollWorker();
+    EpollWorker(WorkFlag flag);
 
 	virtual void RegAwaitable(AwaitableData* data) noexcept final;
 
@@ -23,6 +23,10 @@ public:
     virtual int Register(const std::any& fd) final;
 
     virtual int Unregister(const std::any& fd) final;
+
+private:
+    void EmitWithAllFlags(AwaitableResult&& res);
+    void EmitWithOnlyByIDFlags(AwaitableResult&& res);
 
 private:
 	std::unordered_map<UID_t, AwaitableData*> Awaitables;

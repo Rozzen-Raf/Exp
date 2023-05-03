@@ -17,8 +17,6 @@ public:
     virtual CoroTaskVoid AsyncServerRun() final;
     virtual void CloseSession(const ID_t& id) noexcept final;
 
-    //for test
-    virtual void RedirectAll(const ID_t& id, buffer_ptr buf) noexcept final;
 private:
     mutex_t mutex;
     std::unordered_map<int, Session> Sessions;

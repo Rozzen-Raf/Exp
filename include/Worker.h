@@ -3,6 +3,7 @@
 #include "ChainableTask.h"
 class WorkerBase;
 using emitter_f = std::function<void(AwaitableData*, WorkerBase*)> ;
+enum WorkFlag{AllAwaiablesEmit, OnlyByID};
 
 class WorkerBase
 {
@@ -19,6 +20,10 @@ public:
 
 	virtual ~WorkerBase() {}
 
+    WorkerBase(WorkFlag flag) : Flag(flag)
+   {}
+
+
 private:
 	friend class Sheduler;
 	void set_emit(emitter_f&& emit)
@@ -27,6 +32,7 @@ private:
 	}
 protected:
 	emitter_f Emit;
+    WorkFlag Flag;
 };
 
 typedef std::shared_ptr<WorkerBase> WorkerBaseSharedPtr;

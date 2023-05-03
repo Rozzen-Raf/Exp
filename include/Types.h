@@ -86,6 +86,7 @@ struct AwaitableData
 	std::coroutine_handle<> continuation;
 	AwaitableResult result;
 	WorkerType type;
+	bool NeedUnreg = true;
 };
 
 #define DECLARE_SHARED_PTR(T) class T; using T##SharedPtr = std::shared_ptr<T>;
@@ -109,3 +110,4 @@ using buffer = std::vector<std::byte>;
 using buffer_ptr = std::shared_ptr<buffer>;
 
 buffer_ptr ConvertStringToBuffer(const String& string);
+ID_t GetLocalTime();

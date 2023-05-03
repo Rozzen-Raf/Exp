@@ -19,14 +19,14 @@ bool JsonParser::Parse(buffer_view_const& data)
 }
 //-----------------------------------------------------------
 
-bool JsonParser::Parse(buffer_ptr data)
+bool JsonParser::Parse(buffer& data)
 {
-    if(!data || data->empty())
+    if(data.empty())
         return false;
 
     try
     {
-        Data = json::parse(*data.get());
+        Data = json::parse(data);
         return true;
     }
     catch(const std::exception& e)

@@ -65,7 +65,8 @@ Awaitable Sheduler::event(WorkerType type, UID_t id)
 
 void Sheduler::emit(AwaitableData* data, WorkerBase* worker)
 {
-    worker->UnregAwaitable(data);
+    if(data->NeedUnreg)
+        worker->UnregAwaitable(data);
 
     auto func = [data]()
     {
