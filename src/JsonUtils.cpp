@@ -1,20 +1,21 @@
 #include "JsonUtils.h"
 
-std::pair<ApiCommandBaseSharedPtr, json> ParseJsonApiCommand(buffer_view buffer)
+std::pair<ApiCommandBaseSharedPtr, JsonParser> ParseJsonApiCommand(buffer_view buffer)
 {
     if(!buffer.size())
         return {nullptr, {}};
 
     try
     {
-        json data = json::parse(buffer);
+        JsonParser parser;
+        parser.Parse(buffer);
 
-        auto command = data.at("ApiCommand");
+        auto command = parser.GetValue<json>("ApiCommand");
 
-        if(command.is_null())
+        if(!command.has_value())
             return {nullptr, {}};
 
-        auto api_command = command.at("Command");
+        auto api_command = command.value().at("Command");
 
         if(api_command.is_null() || !api_command.is_string())
              return {nullptr, {}};
@@ -22,7 +23,7 @@ std::pair<ApiCommandBaseSharedPtr, json> ParseJsonApiCommand(buffer_view buffer)
         auto value = api_command.get<String>();
         ApiCommandBaseSharedPtr api_command_execute = std::static_pointer_cast<ApiCommandBase>(MetaData::GetMetaData()->Create(value));
 
-        return {api_command_execute, std::move(command)};
+        return {api_command_execute, JsonParser{std::move(command.value())}};
     }
     catch(const std::exception& e)
     {

@@ -121,7 +121,7 @@ void EpollWorker::EmitWithAllFlags(AwaitableResult &&res)
 
     for(auto await = Awaitables.begin(); await != Awaitables.end(); ++await)
     {
-        await->second->result = std::move(res);
+        await->second->result = res;
         Emit(await->second, this);
     }
 }

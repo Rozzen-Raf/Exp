@@ -8,7 +8,7 @@ void Sheduler::Run(bool block)
 
         ShedulerTask e{coro.GetFunc()};
 
-        TaskSharedPtr task = std::make_shared<Task>(std::move(e), Processor);
+        TaskSharedPtr task = make_custom_shared<Task>(AllocationArea, std::move(e), Processor);
         task_run(task);
     }
 

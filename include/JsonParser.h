@@ -8,10 +8,24 @@ class JsonParser
 public:
     JsonParser() = default;
     explicit JsonParser(json&& data);
-    //JsonParser(JsonParser&& )
-    bool Parse(buffer_view_const& data);
     bool ParseFromFile(StringView file_name);
-    bool Parse(buffer& data);
+    template<typename buffer_type>
+    bool Parse(buffer_type& buffer)
+    {
+        if(buffer.empty())
+            return false;
+
+        try
+        {
+            Data = json::parse(buffer);
+            return true;
+        }
+        catch(const std::exception& e)
+        {
+            ERROR(JsonParser, e.what());
+            return false;
+        }
+    }
 
     template<class T>
     std::optional<T> GetValue(const String& key) const

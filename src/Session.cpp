@@ -91,7 +91,7 @@ void Session::Read(bool loop)
         std::pair<ID_t, Result> res{-1, Result::UnknownCommand};
         if(api_command_pair.first)
         {
-            res = api_command_pair.first->ExecutionCommand(JsonParser(std::move(api_command_pair.second)));
+            res = api_command_pair.first->ExecutionCommand(std::move(api_command_pair.second));
         }
 
         SendResult(res.first, res.second);
