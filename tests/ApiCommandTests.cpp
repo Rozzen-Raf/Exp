@@ -23,13 +23,14 @@ TEST_CASE("PrintCommandTest", "PrintCommandTest")
     auto write_bf = std::as_bytes(std::span(message));
     GetSheduler()->CoroStart(client.async_write(GetSheduler(), write_bf));
 
-    buffer read_bf = buffer(256);
-    auto result = client.read(read_bf);
+    std::byte buf[256];
+    buffer_view read_buffer = std::as_writable_bytes(std::span(buf));
+    auto result = client.read(read_buffer);
 
     REQUIRE(result);
 
     JsonParser parser;
-    status = parser.Parse(read_bf);
+    status = parser.Parse(read_buffer);
 
     REQUIRE(status == true);
 

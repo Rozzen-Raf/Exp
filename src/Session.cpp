@@ -23,9 +23,10 @@ CoroTaskVoid Session::AsyncRead(bool loop)
     IsWorking = true;
     
     do{
-        buffer_ptr read_buffer = std::make_shared<buffer>(256);
+        std::byte buf[256];
+        buffer_view read_buffer = std::as_writable_bytes(std::span(buf));
 
-        auto status = co_await Connection.async_read(Sheduler, *read_buffer.get());
+        auto status = co_await Connection.async_read(Sheduler, read_buffer);
 
         if(!IsWorking)
             co_return;
@@ -38,7 +39,7 @@ CoroTaskVoid Session::AsyncRead(bool loop)
             co_return;
         }
 
-        auto api_command_pair = ParseJsonApiCommand(*read_buffer.get());
+        auto api_command_pair = ParseJsonApiCommand(read_buffer);
 
         std::pair<ID_t, Result> res{-1, Result::UnknownCommand};
         if(api_command_pair.first)
@@ -72,7 +73,8 @@ void Session::Read(bool loop)
     IsWorking = true;
 
     do{
-        buffer read_buffer = buffer(256);
+        std::byte buf[256];
+        buffer_view read_buffer = std::as_writable_bytes(std::span(buf));
         auto status =  Connection.read(read_buffer);
 
         if(!IsWorking)

@@ -1,6 +1,6 @@
 #include "JsonUtils.h"
 
-std::pair<ApiCommandBaseSharedPtr, JsonParser> ParseJsonApiCommand(buffer_view buffer)
+std::pair<ApiCommandBaseSharedPtr, JsonParser> ParseJsonApiCommand(buffer_view& buffer)
 {
     if(!buffer.size())
         return {nullptr, {}};

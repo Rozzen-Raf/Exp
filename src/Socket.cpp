@@ -60,7 +60,7 @@ bool Socket::Listen(const IPEndPoint& endpoint)
 }
 //----------------------------------------------------------
 
-CoroTask<AwaitableResult> Socket::async_read(ShedulerSharedPtr sheduler, buffer& read_bf)
+CoroTask<AwaitableResult> Socket::async_read(ShedulerSharedPtr sheduler, buffer_view& read_bf)
 {
     if(read_bf.empty())
         co_return AwaitableResult{Error, fd_, "Read buffer is empty", -1};
@@ -85,7 +85,7 @@ CoroTask<AwaitableResult> Socket::async_read(ShedulerSharedPtr sheduler, buffer&
             continue;
         }
 
-        read_bf.resize(cnt);
+        //read_bf.resize(cnt);
         break;
     }
 
@@ -93,7 +93,7 @@ CoroTask<AwaitableResult> Socket::async_read(ShedulerSharedPtr sheduler, buffer&
 }
 //----------------------------------------------------------
 
-CoroTask<AwaitableResult> Socket::async_write(ShedulerSharedPtr sheduler, buffer_view_const write_bf)
+CoroTask<AwaitableResult> Socket::async_write(ShedulerSharedPtr sheduler, buffer_view_const& write_bf)
 {
     if(write_bf.empty())
         co_return AwaitableResult{Error, fd_, "Write buffer is empty", -1};
@@ -125,7 +125,7 @@ CoroTask<AwaitableResult> Socket::async_write(ShedulerSharedPtr sheduler, buffer
 }
 //----------------------------------------------------------
 
-AwaitableResult Socket::read(buffer& read_bf)
+AwaitableResult Socket::read(buffer_view& read_bf)
 {
     if(read_bf.empty())
         return {Error, fd_, "Read buffer is empty", -1};
@@ -150,7 +150,7 @@ AwaitableResult Socket::read(buffer& read_bf)
 }
 //----------------------------------------------------------
 
-AwaitableResult Socket::write(buffer_view_const write_bf)
+AwaitableResult Socket::write(buffer_view_const& write_bf)
 {
     if(write_bf.empty())
         return {Error, fd_, "Write buffer is empty", -1};
