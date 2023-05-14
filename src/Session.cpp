@@ -26,7 +26,7 @@ CoroTaskVoid Session::AsyncRead(bool loop)
         std::byte buf[256];
         buffer_view read_buffer = std::as_writable_bytes(std::span(buf));
 
-        auto status = co_await Connection.async_read(Sheduler, read_buffer);
+        auto status = co_await Connection.async_read(Sheduler.get(), read_buffer);
 
         if(!IsWorking)
             co_return;
@@ -57,7 +57,7 @@ CoroTaskVoid Session::AsyncRead(bool loop)
 CoroTaskVoid Session::AsyncWrite(buffer_ptr write_bf)
 {
     auto write_buffer_view = std::as_bytes(std::span(*write_bf.get()));
-    auto status = co_await Connection.async_write(Sheduler, write_buffer_view);
+    auto status = co_await Connection.async_write(Sheduler.get(), write_buffer_view);
 
     if(!status)
     {
