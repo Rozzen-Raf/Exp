@@ -56,7 +56,7 @@ private:
     mutex_t mutex;
     size_t OwnerThreadID;
     ProcessorSharedPtr Processor;
-	PoolAllocator AllocationArea;
+    PoolAllocator<MultiThreadPolicy<>> AllocationArea;
 };
 DECLARE_SHARED_PTR(Sheduler)
 DECLARE_WEAK_PTR(Sheduler)
