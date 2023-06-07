@@ -10,17 +10,6 @@ class Sheduler
 	using mutex_t = std::recursive_mutex; 
     using lock_t = std::unique_lock<mutex_t>;
 
-	struct ShedulerTask
-	{
-        std::coroutine_handle<> handle;
-
-        std::coroutine_handle<> GetHandle() const noexcept
-		{
-             return handle;
-		}
-
-		void SetDoneCallback(auto& s) noexcept {}
-	};
 public:
     explicit Sheduler(ProcessorSharedPtr processor);
 
@@ -29,13 +18,13 @@ public:
 	void Stop();
 
 	template<typename T>
-    void CoroStart(T&& task)
+    T CoroStart(T&& task)
 	{
 		auto handle = task.GetHandle();
 		task.SetDoneCallback([handle, this](){CoroUnreg(handle);});
         task.ControlToSheduler = true;
 		Processor->AddTask(handle);
-        //return task;
+        return std::move(task);
 	}
 
 	void CoroUnreg(std::coroutine_handle<> handle);

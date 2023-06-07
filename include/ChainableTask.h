@@ -192,18 +192,19 @@ public:
 	}
 	CoroTask(const CoroTask&) = delete;
 	CoroTask(CoroTask&& task)
-		: handle_(std::exchange(task.handle_, nullptr)) {}
+        : handle_(std::exchange(task.handle_, nullptr)), ControlToSheduler(task.ControlToSheduler){}
 
 	CoroTask& operator=(const CoroTask&) = delete;
 	CoroTask& operator=(CoroTask&& task) {
 		if (std::addressof(task) != this)
 		{
-            if(handle_)
+            if(!ControlToSheduler && handle_)
 			{
 				handle_.destroy();
 			}
 
-			handle_ = std::exchange(task.handle_, nullptr);
+            ControlToSheduler = task.ControlToSheduler;
+            handle_ = std::exchange(task.handle_, nullptr);
 		}
 		return *this;
 	}
