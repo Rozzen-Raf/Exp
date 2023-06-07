@@ -13,11 +13,9 @@ TEST_CASE("PrintCommandTest", "PrintCommandTest")
     REQUIRE(status == true);
 
     String message = "{\
-        \"ApiCommand\" : {\
             \"Command\" : \"Print\",\
             \"MessageID\" : 1,\
             \"PrintData\" : \"Hello, world!\"\
-        }\
 	}";
 
     auto write_bf = std::as_bytes(std::span(message));

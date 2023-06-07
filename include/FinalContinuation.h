@@ -8,7 +8,9 @@ struct AwaitableFinalContinuation {
         auto handle = caller.promise().continuation;
 
         if (caller.promise().done_callback)
+        {
             caller.promise().done_callback();
+        }
 
         return handle;
     }
