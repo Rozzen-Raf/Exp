@@ -12,11 +12,11 @@ class Sheduler
 
 	struct ShedulerTask
 	{
-		func_t func;
+        std::coroutine_handle<> handle;
 
-		func_t GetFunc() const noexcept
+        std::coroutine_handle<> GetHandle() const noexcept
 		{
-			 return func;
+             return handle;
 		}
 
 		void SetDoneCallback(auto& s) noexcept {}
@@ -29,21 +29,16 @@ public:
 	void Stop();
 
 	template<typename T>
-	void CoroStart(T&& task)
+    void CoroStart(T&& task)
 	{
-        lock_t lock(mutex);
-		//auto task_ptr = std::make_shared<Task>(std::move(task), Processor);
-		auto task_ptr = make_custom_shared<Task>(AllocationArea, std::move(task), Processor);
-		tasks_map.insert({ task_ptr->GetId(), task_ptr });
-		task_run(task_ptr,
-            [this](Task* task)
-			{
-				CoroUnreg(task->GetId());
-			}
-		);
+		auto handle = task.GetHandle();
+		task.SetDoneCallback([handle, this](){CoroUnreg(handle);});
+        task.ControlToSheduler = true;
+		Processor->AddTask(handle);
+        //return task;
 	}
 
-	void CoroUnreg(const UID_t& id);
+	void CoroUnreg(std::coroutine_handle<> handle);
 
 	void RegisterWorker(WorkerBaseSharedPtr worker);
 
@@ -51,12 +46,10 @@ public:
 
 	void emit(AwaitableData* data, WorkerBase* worker);
 private:
-    std::unordered_map<UID_t, TaskSharedPtr> tasks_map;
     std::unordered_map<WorkerType, std::pair<WorkerBaseSharedPtr, CoroTaskVoid>> Workers;
     mutex_t mutex;
     size_t OwnerThreadID;
     ProcessorSharedPtr Processor;
-    PoolAllocator<MultiThreadPolicy<>> AllocationArea;
 };
 DECLARE_SHARED_PTR(Sheduler)
 DECLARE_WEAK_PTR(Sheduler)

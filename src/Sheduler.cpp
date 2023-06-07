@@ -6,10 +6,7 @@ void Sheduler::Run(bool block)
     {
         auto& coro = it.second.second;
 
-        ShedulerTask e{coro.GetFunc()};
-
-        TaskSharedPtr task = make_custom_shared<Task>(AllocationArea, std::move(e), Processor);
-        task_run(task);
+        Processor->AddTask(coro.GetHandle());
     }
 
     if(block)
@@ -17,12 +14,10 @@ void Sheduler::Run(bool block)
 }
 //-----------------------------------------------------------------
 
-Sheduler::Sheduler(ProcessorSharedPtr processor) : Processor(processor), AllocationArea(16777216, sizeof(Task))
+Sheduler::Sheduler(ProcessorSharedPtr processor) : Processor(processor)
 {
     std::hash<std::thread::id> hasher;
     OwnerThreadID = hasher(std::this_thread::get_id());
-
-    AllocationArea.Init();
 }
 //-----------------------------------------------------------------
 
@@ -35,10 +30,13 @@ void Sheduler::Stop()
 }
 //-----------------------------------------------------------------
 
-void Sheduler::CoroUnreg(const UID_t& id)
+void Sheduler::CoroUnreg(std::coroutine_handle<> handle)
 {
-    lock_t lock(mutex);
-    tasks_map.extract(id);
+    if(handle)
+    {
+        LOG(Sheduler, "Task destroy");
+        handle.destroy();
+    }
 }
 //-----------------------------------------------------------------
 
@@ -68,14 +66,6 @@ void Sheduler::emit(AwaitableData* data, WorkerBase* worker)
     if(data->NeedUnreg)
         worker->UnregAwaitable(data);
 
-    auto func = [data]()
-    {
-        if(data && data->continuation)
-            data->continuation.resume();
-    };
-    ShedulerTask e{func};
-
-    TaskSharedPtr task = make_custom_shared<Task>(AllocationArea, std::move(e), Processor);
-    task_run(task);
+      Processor->AddTask(data->continuation);
 }
 //-----------------------------------------------------------------

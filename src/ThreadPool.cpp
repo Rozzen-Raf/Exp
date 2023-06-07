@@ -16,18 +16,18 @@ void ThreadPool::Run()
 {
     for (;;)
     {
-        std::function<void()> task;
+        std::coroutine_handle<> coro;
         {
             lock_t lock(this->queue_mutex);
             this->condition.wait(lock,
                 [this] { return this->stop || !this->tasks.empty(); });
             if (this->stop && this->tasks.empty())
                 return;
-            task = std::move(this->tasks.front());
+            coro = std::move(this->tasks.front());
             this->tasks.pop();
         }
 
-        task();
+        coro.resume();
     }
 }
 //---------------------------------------------------------------------

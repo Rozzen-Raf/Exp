@@ -198,7 +198,7 @@ public:
 	CoroTask& operator=(CoroTask&& task) {
 		if (std::addressof(task) != this)
 		{
-			if(handle_)
+            if(handle_)
 			{
 				handle_.destroy();
 			}
@@ -210,11 +210,11 @@ public:
 	
 	~CoroTask()
 	{
-        if (handle_)
-		{
+        if (!ControlToSheduler && handle_)
+        {
             handle_.destroy();
-			handle_ = nullptr;
-		}
+            handle_ = nullptr;
+        }
 	}
 
 	auto operator co_await() const & noexcept
@@ -266,7 +266,8 @@ public:
 private:
 	friend class Task;
 	friend class Sheduler;
-	func_t GetFunc()const noexcept { return [this]() {if (handle_) handle_.resume(); }; }
+
+    std::coroutine_handle<> GetHandle() const noexcept {return handle_;};
 
 	void SetDoneCallback(func_t callback)
 	{
@@ -274,9 +275,9 @@ private:
 			handle_.promise().set_done_callback(callback);
 	}
 
-	const promise_type::handle_t& GetHandle()const  noexcept { return handle_; }
 private:
 	promise_type::handle_t handle_;
+    bool ControlToSheduler = false;
 };
 
 inline CoroTask<void> CoroTaskPromise<void>::get_return_object() noexcept

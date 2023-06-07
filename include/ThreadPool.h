@@ -9,12 +9,12 @@ public:
 
     void Run();
 
-    void AddTask(TaskWithFunc auto task);
+    void AddTask(CoroutineHandle auto handle);
 
     ~ThreadPool();
 private:
     std::vector< std::thread > workers;
-    std::queue< std::function<void()> > tasks;
+    std::queue< std::coroutine_handle<> > tasks;
 
     mutex_t queue_mutex;
     std::condition_variable condition;
@@ -22,7 +22,7 @@ private:
 };
 //---------------------------------------------------------------------
 
-void ThreadPool::AddTask(TaskWithFunc auto task)
+void ThreadPool::AddTask(CoroutineHandle auto handle)
 {
     {
         lock_t lock(queue_mutex);
@@ -30,9 +30,7 @@ void ThreadPool::AddTask(TaskWithFunc auto task)
         if (stop)
             throw std::runtime_error("enqueue on stopped ThreadPool");
 
-        tasks.emplace([task]() {
-            std::invoke(task->GetFunc());
-            });
+        tasks.emplace(handle);
     }
     condition.notify_one();
 }
