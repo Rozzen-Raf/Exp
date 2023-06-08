@@ -66,15 +66,6 @@ CoroTaskVoid EpollWorker::Run()
 
         if(ret == 0)
             continue;
-
-//        std::unordered_map<UID_t, AwaitableData*>::iterator find;
-//        {
-//            lock_t lock(mutex);
-//            UID_t id = static_cast<ID_t>(ev.data.fd);
-//            find = Awaitables.find(id);
-//            if(find == Awaitables.end())
-//                continue;
-//        }
         AwaitableResult result;
        result.id = static_cast<ID_t>(ev.data.fd);
 

@@ -7,7 +7,6 @@
 #include <cstddef>
 #include "Socket.h"
 
-
 void signalHandler( int signum ) {
    std::cout << "Interrupt signal (" << signum << ") received.\n";
 
@@ -23,7 +22,8 @@ int main()
 
 	try{
         RegisterAllMetaClass();
-		ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool>>(8);
+        using CoroPool = ThreadPool<std::coroutine_handle<>>;
+		ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool<std::coroutine_handle<>>>>(8);
 		ShedulerSharedPtr sheduler = std::make_shared<Sheduler>(processor);
 
 		EpollWorkerSharedPtr worker = std::make_shared<EpollWorker>(OnlyByID);
