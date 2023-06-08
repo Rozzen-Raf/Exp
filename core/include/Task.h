@@ -2,6 +2,7 @@
 #include "Types.h"
 
 class TaskProcessorContext;
+template<class T>
 class ThreadPool;
 
 using ProcessorWeakPtr = std::weak_ptr<TaskProcessorContext> ;

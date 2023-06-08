@@ -6,7 +6,7 @@ ShedulerSharedPtr GetSheduler()
 
     if(!sheduler)
     {
-        ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool>>(8);
+        ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<ThreadPool<std::coroutine_handle<>>>>(8);
 		sheduler = std::make_shared<Sheduler>(processor);
     }
 
