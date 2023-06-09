@@ -18,15 +18,17 @@ Session::~Session()
 }
 //------------------------------------------------
 
-CoroTaskVoid Session::AsyncRead(bool loop)
+CoroTaskVoid Session::AsyncRead(bool loop, WorkerType type, uint size_buffer, handler_packet_f handler_packet)
 {
+    ASSERT(handler_packet);
+
     IsWorking = true;
     
     do{
-        std::byte buf[256];
+        String buf(size_buffer, size_buffer);
         buffer_view read_buffer = std::as_writable_bytes(std::span(buf));
 
-        auto status = co_await Connection.async_read(Sheduler.get(), read_buffer);
+        auto status = co_await Connection.async_read(Sheduler.get(), read_buffer, type);
 
         if(!IsWorking)
             co_return;
@@ -39,25 +41,20 @@ CoroTaskVoid Session::AsyncRead(bool loop)
             co_return;
         }
 
-        auto api_command_pair = ParseJsonApiCommand(read_buffer);
+        String res;
+        res = co_await handler_packet(read_buffer);
 
-        std::pair<ID_t, Result> res{-1, Result::UnknownCommand};
-        if(api_command_pair.first)
-        {
-            res = api_command_pair.first->ExecutionCommand(JsonParser(std::move(api_command_pair.second)));
-        }
-
-        SendResult(res.first, res.second);
+        SendResult(res);
     }while(loop && IsWorking);
     
     co_return;
 }
 //------------------------------------------------
 
-CoroTaskVoid Session::AsyncWrite(buffer_ptr write_bf)
+CoroTaskVoid Session::AsyncWrite(buffer_ptr write_bf, WorkerType type)
 {
     auto write_buffer_view = std::as_bytes(std::span(*write_bf.get()));
-    auto status = co_await Connection.async_write(Sheduler.get(), write_buffer_view);
+    auto status = co_await Connection.async_write(Sheduler.get(), write_buffer_view, type);
 
     if(!status)
     {
@@ -65,41 +62,6 @@ CoroTaskVoid Session::AsyncWrite(buffer_ptr write_bf)
     }
     
     co_return;
-}
-//------------------------------------------------
-
-void Session::Read(bool loop)
-{
-    IsWorking = true;
-
-    do{
-        std::byte buf[256];
-        buffer_view read_buffer = std::as_writable_bytes(std::span(buf));
-        auto status =  Connection.read(read_buffer);
-
-        if(!IsWorking)
-            return;
-
-        if(!status)
-        {
-            loop = false;
-            ERROR(Session, status.err_message);
-            Close();
-            return;
-        }
-
-        auto api_command_pair = ParseJsonApiCommand(read_buffer);
-
-        std::pair<ID_t, Result> res{-1, Result::UnknownCommand};
-        if(api_command_pair.first)
-        {
-            res = api_command_pair.first->ExecutionCommand(std::move(api_command_pair.second));
-        }
-
-        SendResult(res.first, res.second);
-    }while(loop && IsWorking);
-
-    return;
 }
 //------------------------------------------------
 
@@ -124,15 +86,9 @@ void Session::Close() noexcept
 }
 //------------------------------------------------
 
-void Session::SendResult(ID_t message_id, Result res)
+void Session::SendResult(const String& response)
 {
-    JsonParser parser;
-    parser.SetValue("MessageID", std::move(message_id));
-    parser.SetValue("ResultID", std::move(res));
-
-    auto dump = parser.Dump();
-    auto write_buffer_view = std::as_bytes(std::span(dump));
-    //Sheduler->CoroStart(AsyncWrite(buffer));
+    auto write_buffer_view = std::as_bytes(std::span(response));
     Write(write_buffer_view);
 }
 //------------------------------------------------

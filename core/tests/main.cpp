@@ -8,7 +8,6 @@ int main( int argc, char* argv[] )
         return returnCode;
 
     try{
-        RegisterAllMetaClass();
 		auto sheduler = GetSheduler();
 
 		EpollWorkerSharedPtr worker = std::make_shared<EpollWorker>(OnlyByID);
@@ -29,23 +28,13 @@ int main( int argc, char* argv[] )
         if(!res)
             return 1;
 
-        auto server_opt = parser.GetValue<json>("Server");
-        if(!server_opt.has_value())
-        {
-            ERROR(main, "Config file is not contains Server");
-        }
-        JsonParser server_config(std::move(server_opt.value()));
-
-        auto type_opt = server_config.GetValue<String>("Type");
-        if(!type_opt.has_value())
-        {
-            ERROR(main, "Config file is not contains Server:Type");
-        }
-
         RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<EpollWorker>>(worker);
+        auto server = CreateServer(parser, mediator, sheduler);
+        if(!server)
+        {
+            throw std::runtime_error("server not created");
+        }
 
-        auto args = Arguments<Server>(sheduler, mediator, server_config);
-        ServerSharedPtr server = std::static_pointer_cast<Server>(MetaData::GetMetaData()->Create(type_opt.value(), &args));
         sheduler->CoroStart(server->AsyncServerRun());
 		sheduler->Run(false);
         return session.run();

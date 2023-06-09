@@ -6,6 +6,9 @@ using json = nlohmann::json;
 class JsonParser
 {
 public:
+
+    using BlockType = json;
+
     JsonParser() = default;
     explicit JsonParser(json&& data);
     bool ParseFromFile(StringView file_name);

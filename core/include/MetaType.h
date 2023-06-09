@@ -146,6 +146,9 @@ static inline MetaTypeSharedPtr GetMetaType() noexcept { return StaticMetaType;}
 private:\
 
 #define METATYPE_DEF(T) MetaTypeSharedPtr T::StaticMetaType = nullptr;
+#define METATYPE_DEF_TEMPL(T) template<>\
+MetaTypeSharedPtr T::StaticMetaType = nullptr;
 
 #define REGISTER_METATYPE(T) T::StaticMetaType = MetaData::GetMetaData()->Register(#T, std::make_shared<MetaType>(0, #T, std::make_shared<ObjectCreator<T>>()));
+#define REGISTER_METATYPE_TEMPL(T, templ) T<templ>::StaticMetaType = MetaData::GetMetaData()->Register(#T, std::make_shared<MetaType>(0, #T, std::make_shared<ObjectCreator<T<templ>>>()));
 #endif // METATYPE_H

@@ -2,7 +2,6 @@
 #define TCPSERVER_H
 
 #include "Server.h"
-#include "MetaType.h"
 #include "Session.h"
 class TcpServer : public Server
 {
@@ -12,12 +11,14 @@ class TcpServer : public Server
 public:
     TcpServer();
     ~TcpServer();
-    TcpServer(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const JsonParser& json_data);
-    virtual void SetArgs(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const JsonParser& json_data) override;
+    TcpServer(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg,const ServerConfiguration& configuration);
+    virtual void SetArgs(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const ServerConfiguration& configuration) override;
     virtual CoroTaskVoid AsyncServerRun() final;
     virtual void CloseSession(const ID_t& id) noexcept final;
 
 private:
+    void InitHandler();
+
     mutex_t mutex;
     std::unordered_map<int, Session> Sessions;
     Listener listener;

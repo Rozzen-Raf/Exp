@@ -1,12 +1,14 @@
 #include "TcpServer.h"
+#include "JsonUtils.h"
 //--------------------------------------------------------
 METATYPE_DEF(TcpServer)
 //--------------------------------------------------------
-TcpServer::TcpServer(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const JsonParser& json_data) : 
+TcpServer::TcpServer(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const ServerConfiguration& conf) :
 listener(nullptr),  
 IsWorking(true)
 {
-    SetArgs(sheduler, reg, json_data);
+    LOG(TcpServer, "Create");
+    SetArgs(sheduler, reg, conf);
 }
 //--------------------------------------------------------
 
@@ -14,6 +16,7 @@ TcpServer::TcpServer() :
 listener(nullptr), 
 IsWorking(true)
 {
+    LOG(TcpServer, "Create");
 }
 //--------------------------------------------------------
 
@@ -38,7 +41,7 @@ CoroTaskVoid TcpServer::AsyncServerRun()
     //     Sheduler->CoroStart(AsyncSessionHandle());
    while(IsWorking)
    {
-       auto status = co_await listener.AsyncAccept(Sheduler);
+       auto status = co_await listener.AsyncAccept(Sheduler, Type);
 
        if(!IsWorking)
            co_return;
@@ -57,7 +60,7 @@ CoroTaskVoid TcpServer::AsyncServerRun()
 
            if(session_iter.second)
            {
-               Sheduler->CoroStart(session_iter.first->second.AsyncRead(true));
+               Sheduler->CoroStart(session_iter.first->second.AsyncRead(true, Type, Conf.SizeBytesInPacket, HandlerPacket));
            }
        }
    }
@@ -66,31 +69,18 @@ CoroTaskVoid TcpServer::AsyncServerRun()
 }
 //------------------------------------------------------------
 
-void TcpServer::SetArgs(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const JsonParser& json_data)
+void TcpServer::SetArgs(ShedulerSharedPtr sheduler, RegisterMediatorBasePtr reg, const ServerConfiguration& conf)
 {
     ASSERT(sheduler);
 
     Sheduler = sheduler;
     Register = reg;
+    Conf = conf;
+    Type = static_cast<WorkerType>(Register->Type());
     listener.SetRegister(reg);
 
-    auto host_opt = json_data.GetValue<String>("Host");
-
-    if(!host_opt.has_value())
-    {
-        ERROR(TcpServer, "Config file is not contains Host");
-        return;
-    }
-    String host = std::move(host_opt.value());
-
-    auto port_opt = json_data.GetValue<uint>("Port");
-    if(!port_opt.has_value())
-    {
-        ERROR(TcpServer, "Config file is not contains Port");
-        return;
-    }
-
-    uint port = std::move(port_opt.value());
+    const String& host = conf.host;
+    uint port = conf.port;
 
     Addr = IPEndPoint(host.c_str(), port);
 }

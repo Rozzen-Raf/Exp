@@ -54,8 +54,8 @@ public:
 	bool Bind(const IPEndPoint& endpoint);
 	bool Listen(const IPEndPoint& endpoint);
 
-    CoroTask<AwaitableResult> async_read(Sheduler* sheduler, buffer_view& read_bf);
-    CoroTask<AwaitableResult> async_write(Sheduler* sheduler, buffer_view_const& write_bf);
+    CoroTask<AwaitableResult> async_read(Sheduler* sheduler, buffer_view& read_bf, WorkerType type);
+    CoroTask<AwaitableResult> async_write(Sheduler* sheduler, buffer_view_const& write_bf, WorkerType type);
 
     AwaitableResult read(buffer_view& read_bf);
     AwaitableResult write(buffer_view_const& write_bf);

@@ -108,6 +108,9 @@ using buffer_view = std::span<std::byte>;
 using buffer_view_const = std::span<const std::byte>;
 using buffer = std::vector<std::byte>;
 using buffer_ptr = std::shared_ptr<buffer>;
+template<class T>
+class CoroTask;
+using handler_packet_f = std::function<CoroTask<String>(buffer_view&)>; 
 
 buffer_ptr ConvertStringToBuffer(const String& string);
 ID_t GetLocalTime();
