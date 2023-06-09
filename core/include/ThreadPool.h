@@ -1,11 +1,13 @@
 #pragma once
 #include "Concepts.h"
 #include "Task.h"
-template<class Task>
+template<class Task = std::coroutine_handle<>>
 class ThreadPool {
     using mutex_t = std::mutex; 
     using lock_t = std::unique_lock<mutex_t>;
 public:
+    using TaskType = Task;
+
     explicit ThreadPool(size_t threads);
 
     void Run();

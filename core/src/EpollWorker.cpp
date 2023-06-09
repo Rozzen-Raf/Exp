@@ -10,6 +10,8 @@ int get_errno(int fd) {
   }
 }
 //--------------------------------------------------------------------------------
+int EpollWorker::worker_type = EPOLL;
+//--------------------------------------------------------------------------------
 EpollWorker::EpollWorker(WorkFlag flag) : WorkerBase(flag)
 {
     if (EpollFd != -1)

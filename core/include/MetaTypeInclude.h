@@ -1,5 +1,5 @@
 #pragma once
 #include "TcpServer.h"
-#include "ApiCommand.h"
+#include "ApiCommandExample.h"
 
 void RegisterAllMetaClass();

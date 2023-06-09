@@ -1,6 +1,6 @@
 #include "Listener.h"
 
-CoroTask<AwaitableResult> Listener::AsyncAccept(ShedulerSharedPtr sheduler) noexcept
+CoroTask<AwaitableResult> Listener::AsyncAccept(ShedulerSharedPtr sheduler, WorkerType type) noexcept
 {
 	int ret;
 	std::cout << "async_accept start" << std::endl;
@@ -9,7 +9,7 @@ CoroTask<AwaitableResult> Listener::AsyncAccept(ShedulerSharedPtr sheduler) noex
         if(errno != EAGAIN && errno != EWOULDBLOCK)
             co_return AwaitableResult{Error, fd_, "Failed to accept", errno};
 
-		auto status = co_await sheduler->event(EPOLL, fd_);
+		auto status = co_await sheduler->event(type, fd_);
 		if(!status)
             co_return status;
 	}

@@ -19,7 +19,7 @@ TEST_CASE("PrintCommandTest", "PrintCommandTest")
 	}";
 
     auto write_bf = std::as_bytes(std::span(message));
-    GetSheduler()->CoroStart(client.async_write(GetSheduler().get(), write_bf));
+    GetSheduler()->CoroStart(client.async_write(GetSheduler().get(), write_bf, EPOLL));
 
     std::byte buf[256];
     buffer_view read_buffer = std::as_writable_bytes(std::span(buf));

@@ -6,6 +6,7 @@ private:
 using mutex_t = std::recursive_mutex;
 using lock_t = std::unique_lock<mutex_t>;
 public:
+	static int worker_type;
     EpollWorker(WorkFlag flag);
 
 	virtual void RegAwaitable(AwaitableData* data) noexcept final;

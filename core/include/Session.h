@@ -4,7 +4,6 @@
 #include "Socket.h"
 #include "Sheduler.h"
 #include "Server.h"
-#include "JsonUtils.h"
 class Session
 {
 public:
@@ -12,15 +11,14 @@ public:
     Session(const Session& s) = delete;
     Session(Session&& s);
     ~Session();
-    CoroTaskVoid AsyncRead(bool loop);
-    CoroTaskVoid AsyncWrite(buffer_ptr write_bf);
+    CoroTaskVoid AsyncRead(bool loop, WorkerType type, uint size_buffer, handler_packet_f handler_packet);
+    CoroTaskVoid AsyncWrite(buffer_ptr write_bf, WorkerType type);
 
-    void Read(bool loop);
     void Write(buffer_view_const write_bf);
 
     void Close() noexcept;
 
-    void SendResult(ID_t message_id, Result res);
+    void SendResult(const String& response);
 
 private:
     Socket Connection;

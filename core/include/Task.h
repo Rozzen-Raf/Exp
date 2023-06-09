@@ -15,7 +15,7 @@ protected:
 	virtual ~TaskProcessorContext() = default;
 public:
 
-	virtual void AddTask(std::coroutine_handle<> handle) = 0;
+    virtual void AddTask(std::any task) = 0;
 	virtual void Run() = 0;
 };
 
@@ -34,9 +34,10 @@ public:
 	}
 	TaskProcessorModel(const TaskProcessor& instance) = delete;
 
-	virtual void AddTask(std::coroutine_handle<> handle)
+    virtual void AddTask(std::any task)
 	{
-		Processor->AddTask(handle);
+        auto handle = std::any_cast<typename TaskProcessor::TaskType>(task);
+        Processor->AddTask(handle);
 	}
 
 	virtual void Run() final
