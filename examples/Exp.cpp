@@ -7,6 +7,12 @@
 #include <cstddef>
 #include "Socket.h"
 
+METATYPE_DEF_TEMPL(Print<JsonParser>)
+void RegisterMetaType()
+{
+    REGISTER_METATYPE_TEMPL(Print, JsonParser)
+}
+
 void signalHandler( int signum ) {
    std::cout << "Interrupt signal (" << signum << ") received.\n";
 
