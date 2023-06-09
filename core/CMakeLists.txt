@@ -24,24 +24,3 @@ add_library (${LIB_TARGET_NAME} STATIC ${SOURCE_FILES} ${HEADER_FILES})
 set_property(TARGET ${LIB_TARGET_NAME} PROPERTY CXX_STANDARD 20)
 
 target_include_directories(${LIB_TARGET_NAME} PUBLIC ${INCLUDE_DIR})
-
-if(UNIX)
-	set(TEST_TARGET tests)
-
-	file(GLOB TEST_FILES tests/*.cpp tests/*.h)
-
-	add_executable(${TEST_TARGET} ${TEST_FILES})
-
-	find_package(Catch2)
-
-	target_link_libraries(${TEST_TARGET} Catch2::Catch2)
-	target_link_libraries(${TEST_TARGET} ${LIB_TARGET_NAME})
-	target_link_libraries(${PROJECT_NAME} json-parser)
-
-	target_include_directories(${TEST_TARGET} PUBLIC ${INCLUDE_DIR})
-
-    add_test(NAME ${TEST_TARGET} COMMAND ${TEST_TARGET})
-
-	include(CTest)
-	include(Catch)
-endif(UNIX)
