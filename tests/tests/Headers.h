@@ -6,4 +6,4 @@
 #include "ChainableTask.h"
 #include "EpollWorker.h"
 
-ShedulerSharedPtr GetSheduler();
+task::ShedulerSharedPtr GetSheduler();
