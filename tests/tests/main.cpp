@@ -1,4 +1,15 @@
 #include "Headers.h"
+#include "ApiCommandExample.h"
+using namespace parse;
+namespace api
+{
+    METATYPE_DEF_TEMPL(Print<JsonParser>)
+    void RegisterMetaType()
+    {
+        REGISTER_METATYPE_TEMPL(Print, JsonParser)
+    }
+}
+
 int main( int argc, char* argv[] ) 
 {
     Catch::Session session;
@@ -8,9 +19,11 @@ int main( int argc, char* argv[] )
         return returnCode;
 
     try{
+        api::RegisterMetaType();
+        using namespace engine;
 		auto sheduler = GetSheduler();
 
-		EpollWorkerSharedPtr worker = std::make_shared<EpollWorker>(OnlyByID);
+		io::EpollWorkerSharedPtr worker = std::make_shared<io::EpollWorker>(OnlyByID);
 		sheduler->RegisterWorker(worker);
 
         String config = "{\
@@ -21,15 +34,15 @@ int main( int argc, char* argv[] )
             }\
 		}";
 
-        JsonParser parser;
+        parse::JsonParser parser;
         auto buf = std::as_bytes(std::span(config));
         bool res = parser.Parse(buf);
 
         if(!res)
             return 1;
 
-        RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<EpollWorker>>(worker);
-        auto server = CreateServer(parser, mediator, sheduler);
+        RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<io::EpollWorker>>(worker);
+        auto server = io::CreateServer(parser, mediator, sheduler);
         if(!server)
         {
             throw std::runtime_error("server not created");

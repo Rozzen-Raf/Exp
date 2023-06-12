@@ -9,7 +9,8 @@ if(UNIX)
 	target_link_libraries(${PROJECT_NAME} Catch2::Catch2)
 	target_link_libraries(${PROJECT_NAME} core)
 	target_link_libraries(${PROJECT_NAME} json-parser)
-
+	target_link_libraries(${PROJECT_NAME} examples_lib)
+	
     add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
 
 	include(CTest)

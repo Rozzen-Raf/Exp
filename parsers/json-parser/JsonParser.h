@@ -1,6 +1,12 @@
 #pragma once
 #include "json.hpp"
 #include "Types.h"
+namespace api{
+DECLARE_SHARED_PTR(ApiCommandBase)
+}
+
+namespace parse
+{
 using json = nlohmann::json;
 
 class JsonParser
@@ -61,6 +67,9 @@ public:
     {
         return Data.dump();
     }
+
+    static std::pair<api::ApiCommandBaseSharedPtr, JsonParser> ParseApiCommand(buffer_view& buffer);
 private:
     json Data;
 };
+}

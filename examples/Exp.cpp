@@ -1,18 +1,22 @@
 ﻿#include "ThreadPool.h"
 #include "Sheduler.h"
 #include "JsonParser.h"
-#include "MetaTypeInclude.h"
+#include "ApiCommandExample.h"
+#include "MetaType.h"
 #include "ChainableTask.h"
 #include "EpollWorker.h"
 #include <cstddef>
 #include "Socket.h"
-
-METATYPE_DEF_TEMPL(Print<JsonParser>)
-void RegisterMetaType()
+#include "TcpServer.h"
+using namespace parse;
+namespace api
 {
-    REGISTER_METATYPE_TEMPL(Print, JsonParser)
+    METATYPE_DEF_TEMPL(Print<JsonParser>)
+    void RegisterMetaType()
+    {
+        REGISTER_METATYPE_TEMPL(Print, JsonParser)
+    }
 }
-
 void signalHandler( int signum ) {
    std::cout << "Interrupt signal (" << signum << ") received.\n";
 
@@ -21,25 +25,26 @@ void signalHandler( int signum ) {
 
    exit(signum);  
 }
-
+using namespace engine;
 int main()
 {
     signal(SIGINT, signalHandler);
 
 	try{
-        using CoroPool = ThreadPool<>;
-        ProcessorSharedPtr processor = std::make_shared<TaskProcessorModel<CoroPool>>(8);
-		ShedulerSharedPtr sheduler = std::make_shared<Sheduler>(processor);
+        api::RegisterMetaType();
+        using CoroPool = task::ThreadPool<>;
+        task::ProcessorSharedPtr processor = std::make_shared<task::TaskProcessorModel<CoroPool>>(8);
+		task::ShedulerSharedPtr sheduler = std::make_shared<task::Sheduler>(processor);
 
-		EpollWorkerSharedPtr worker = std::make_shared<EpollWorker>(OnlyByID);
+		io::EpollWorkerSharedPtr worker = std::make_shared<io::EpollWorker>(OnlyByID);
 		sheduler->RegisterWorker(worker);
 
-        RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<EpollWorker>>(worker);
+        RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<io::EpollWorker>>(worker);
 
         JsonParser parser;
         parser.ParseFromFile("config.json");
 
-        auto server = CreateServer(parser, mediator, sheduler);
+        auto server = io::CreateServer(parser, mediator, sheduler);
         if(!server)
         {
             throw std::runtime_error("server not created");
