@@ -100,6 +100,7 @@ public:
 
     inline int GetIndex() const noexcept { return Index; }
 private:
+    friend class MetaData;
     int Index;
     std::string ClassName;
     ICreatorSharedPtr Creator;
@@ -120,6 +121,7 @@ public:
     MetaTypeSharedPtr Register(std::string&& class_name, MetaTypeSharedPtr metatype)
     {
         MetaMaps->insert({ std::move(class_name), metatype });
+        metatype->Index = MetaMaps->size();
 
         return metatype;
     }
@@ -143,7 +145,7 @@ private:
 #define METATYPE \
 public:\
 static engine::MetaTypeSharedPtr StaticMetaType;\
-static inline engine::MetaTypeSharedPtr GetMetaType() noexcept { return StaticMetaType;}\
+static inline const engine::MetaTypeSharedPtr GetMetaType() noexcept { return StaticMetaType;}\
 private:\
 
 #define METATYPE_DEF(T) engine::MetaTypeSharedPtr T::StaticMetaType = nullptr;
