@@ -44,7 +44,7 @@ int main()
         JsonParser parser;
         parser.ParseFromFile("config.json");
 
-        auto server = io::CreateServer(parser, mediator, sheduler);
+        auto server = io::CreateServer(parser, JsonParser(), mediator, sheduler);
         if(!server)
         {
             throw std::runtime_error("server not created");

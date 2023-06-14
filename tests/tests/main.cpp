@@ -42,7 +42,7 @@ int main( int argc, char* argv[] )
             return 1;
 
         RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<io::EpollWorker>>(worker);
-        auto server = io::CreateServer(parser, mediator, sheduler);
+        auto server = io::CreateServer(parser, parse::JsonParser(), mediator, sheduler);
         if(!server)
         {
             throw std::runtime_error("server not created");

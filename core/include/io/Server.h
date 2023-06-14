@@ -18,9 +18,13 @@ struct ServerConfiguration
     uint SizeBytesInPacket;
 };
 
-template<class ConfParser, class ApiParser = ConfParser>
+template<class ConfParser, class ApiParser>
+ServerSharedPtr CreateServer(ConfParser& parser, ApiParser&& api_parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler,
+                            uint SizeBytesInPacket = 256);
+
+template<class ConfParser>
 ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler,
-                            handler_packet_f handler = nullptr, uint SizeBytesInPacket = 256);
+                        handler_packet_f handler, uint SizeBytesInPacket = 256);
 
 class Server
 {
@@ -34,20 +38,26 @@ public:
     virtual void CloseSession(const ID_t& id) noexcept = 0;
 
     template<class Parser>
-    void InitHandler();
+    void InitHandler(Parser&& parser);
 
 protected:
     template<class ConfParser, class ApiParser>
-    friend ServerSharedPtr CreateServer(ConfParser& parser,  engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler,
+    friend ServerSharedPtr CreateServer(ConfParser& parser, ApiParser&& api_parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler,
+    uint SizeBytesInPacket);
+    template<class ConfParser>
+    friend ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler,
     handler_packet_f handler, uint SizeBytesInPacket);
+
+    template<class ConfParser>
+    static ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr mediator, task::ShedulerSharedPtr sheduler, uint SizeBytesInPacket);
+
     engine::WorkerType Type;
     handler_packet_f HandlerPacket;
     ServerConfiguration Conf;
 };
 
-template<class ConfParser, class ApiParser>
-ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler, 
-handler_packet_f handler, uint SizeBytesInPacket)
+template<class ConfParser>
+ServerSharedPtr Server::CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr mediator, task::ShedulerSharedPtr sheduler, uint SizeBytesInPacket)
 {
     engine::RegisterAllMetaClass();
     auto server_opt = parser.template GetValue<typename ConfParser::BlockType>("Server");
@@ -86,22 +96,37 @@ handler_packet_f handler, uint SizeBytesInPacket)
 
     conf.SizeBytesInPacket = SizeBytesInPacket;
 
-    auto args = engine::Arguments<Server>(sheduler, worker_mediator, conf);
+    auto args = engine::Arguments<Server>(sheduler, mediator, conf);
     ServerSharedPtr server = std::static_pointer_cast<Server>(engine::MetaData::GetMetaData()->Create(type_opt.value(), &args));
-    if(handler)
-        server->HandlerPacket = handler;
-    else
-        server->InitHandler<ApiParser>();
+
+    return server;
+}
+
+template<class ConfParser, class ApiParser>
+ServerSharedPtr CreateServer(ConfParser& parser, ApiParser&& api_parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler, 
+uint SizeBytesInPacket)
+{
+    auto server = Server::CreateServer(parser, worker_mediator, sheduler, SizeBytesInPacket);
+    server->InitHandler(std::forward<ApiParser>(api_parser));
+    return server;
+}
+
+template<class ConfParser>
+ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler,
+                        handler_packet_f handler, uint SizeBytesInPacket)
+{
+    auto server = Server::CreateServer(parser, worker_mediator, sheduler, SizeBytesInPacket);
+    server->HandlerPacket = handler;
     return server;
 }
 //---------------------------------------------------------------
 template<class Parser>
-void Server::InitHandler()
+void Server::InitHandler(Parser&& parser)
 {
-    HandlerPacket = [](buffer_view& read_buffer) -> task::CoroTask<String>
+    HandlerPacket = [parser = std::move(parser)](buffer_view& read_buffer) mutable -> task::CoroTask<String>
     {
         String res;
-        auto api_command_pair = Parser::ParseApiCommand(read_buffer);
+        auto api_command_pair = parser.ParseApiCommand(read_buffer);
 
         if(api_command_pair.first)
         {

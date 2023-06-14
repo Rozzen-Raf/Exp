@@ -31,10 +31,9 @@ std::pair<api::ApiCommandBaseSharedPtr, JsonParser> JsonParser::ParseApiCommand(
 
     try
     {
-        JsonParser parser;
-        parser.Parse(buffer);
+        Parse(buffer);
 
-        auto api_command = parser.template GetValue<String>("Command");
+        auto api_command = GetValue<String>("Command");
 
         if(!api_command.has_value() || api_command.value().empty())
              return {nullptr, {}};
@@ -42,7 +41,7 @@ std::pair<api::ApiCommandBaseSharedPtr, JsonParser> JsonParser::ParseApiCommand(
         String& value = api_command.value();
         api::ApiCommandBaseSharedPtr api_command_execute = std::static_pointer_cast<api::ApiCommandBase>(engine::MetaData::GetMetaData()->Create(value));
 
-        return {api_command_execute, std::move(parser)};
+        return {api_command_execute, *this};
     }
     catch(const std::exception& e)
     {
