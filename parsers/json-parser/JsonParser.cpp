@@ -24,10 +24,10 @@ bool JsonParser::ParseFromFile(StringView file_name)
 }
 //-----------------------------------------------------------
 
-std::pair<api::ApiCommandBaseSharedPtr, JsonParser> JsonParser::ParseApiCommand(buffer_view& buffer)
+api::ApiCommandBaseSharedPtr JsonParser::ParseApiCommand(buffer_view& buffer)
 {
     if(!buffer.size())
-        return {nullptr, {}};
+        return nullptr;
 
     try
     {
@@ -36,17 +36,17 @@ std::pair<api::ApiCommandBaseSharedPtr, JsonParser> JsonParser::ParseApiCommand(
         auto api_command = GetValue<String>("Command");
 
         if(!api_command.has_value() || api_command.value().empty())
-             return {nullptr, {}};
+             return nullptr;
 
         String& value = api_command.value();
         api::ApiCommandBaseSharedPtr api_command_execute = std::static_pointer_cast<api::ApiCommandBase>(engine::MetaData::GetMetaData()->Create(value));
 
-        return {api_command_execute, *this};
+        return api_command_execute;
     }
     catch(const std::exception& e)
     {
         ERROR(JsonParser, e.what());
-        return {nullptr, {}};
+        return nullptr;
     }
 }
 //-----------------------------------------------------------

@@ -3,10 +3,10 @@
 using namespace parse;
 namespace api
 {
-    METATYPE_DEF_TEMPL(Print<JsonParser>)
+    METATYPE_DEF_TEMPL(Print<DefaultTools<JsonParser>>)
     void RegisterMetaType()
     {
-        REGISTER_METATYPE_TEMPL(Print, JsonParser)
+        REGISTER_METATYPE_TEMPL(Print, DefaultTools<JsonParser>)
     }
 }
 
@@ -42,7 +42,7 @@ int main( int argc, char* argv[] )
             return 1;
 
         RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<io::EpollWorker>>(worker);
-        auto server = io::CreateServer(parser, parse::JsonParser(), mediator, sheduler);
+        auto server = io::CreateServer<JsonParser, JsonParser>(parser, mediator, sheduler);
         if(!server)
         {
             throw std::runtime_error("server not created");

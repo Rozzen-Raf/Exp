@@ -68,7 +68,7 @@ public:
         return Data.dump();
     }
 
-    std::pair<api::ApiCommandBaseSharedPtr, JsonParser> ParseApiCommand(buffer_view& buffer);
+    api::ApiCommandBaseSharedPtr ParseApiCommand(buffer_view& buffer);
 private:
     json Data;
 };
