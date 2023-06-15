@@ -118,21 +118,30 @@ public:
     {
     }
 
-    MetaTypeSharedPtr Register(std::string&& class_name, MetaTypeSharedPtr metatype)
+    MetaTypeSharedPtr Register(std::string&& key, MetaTypeSharedPtr metatype)
     {
-        MetaMaps->insert({ std::move(class_name), metatype });
+        MetaMaps->insert({ std::move(key), metatype });
         metatype->Index = MetaMaps->size();
 
         return metatype;
     }
 
-    std::shared_ptr<void> Create(const std::string& str, IArguments* args = nullptr)
+    std::shared_ptr<void> Create(const std::string& key, IArguments* args = nullptr)
     {
-        auto&& find_iter = MetaMaps->find(str);
+        auto&& find_iter = MetaMaps->find(key);
         if (find_iter == MetaMaps->end())
             return nullptr;
 
         return find_iter->second->Construct(args);
+    }
+
+    MetaTypeSharedPtr GetMetaType(const std::string& key) const noexcept
+    {
+        auto find_iter = MetaMaps->find(key);
+        if (find_iter == MetaMaps->end())
+            return nullptr;
+
+        return find_iter->second;
     }
 
     static MetaData* GetMetaData();

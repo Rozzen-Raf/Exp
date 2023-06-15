@@ -29,7 +29,7 @@ int main( int argc, char* argv[] )
         String config = "{\
             \"Server\" : {\
                 \"Host\" : \"127.0.0.1\",\
-                \"Port\" : 11111,\
+                \"Port\" : 1111,\
                 \"Type\" : \"TcpServer\"\
             }\
 		}";

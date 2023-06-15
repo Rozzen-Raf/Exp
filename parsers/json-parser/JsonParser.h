@@ -31,7 +31,7 @@ public:
         }
         catch(const std::exception& e)
         {
-            ERROR(JsonParser, e.what());
+            ERROR(Parse, e.what());
             return false;
         }
     }
@@ -46,7 +46,7 @@ public:
 		}
 		catch (const std::exception& e)
 		{
-            ERROR(JsonParser, e.what());
+            ERROR(GetValue, e.what());
             return {};
         }
     }

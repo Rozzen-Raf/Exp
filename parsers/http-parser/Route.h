@@ -4,28 +4,31 @@
 #include "MetaType.h"
 #include "ApiCommandBase.h"
 
-enum MethodType
+namespace http
 {
-    GET,
-    POST,
-    PUT,
-    DELETE,
-    All
-};
-
-class Route
-{
-    struct RouteItem
+    enum MethodType
     {
-        String Pattern;
-        engine::MetaTypeSharedPtr MetaType;
-        MethodType Method;
+        GET,
+        POST,
+        PUT,
+        DELETE,
+        All
     };
-public:
-    void RegisterRoute(const String& pattern, engine::MetaTypeSharedPtr metatype, MethodType method = All);
 
-    api::ApiCommandBaseSharedPtr Match(const String& uri, MethodType method, std::map<String, String>& path, std::map<String, String>& queries);
-private:
-    std::vector<RouteItem> Routes;
-};
-DECLARE_SHARED_PTR(Route)
+    class Route
+    {
+        struct RouteItem
+        {
+            std::vector<String> Pattern;
+            engine::MetaTypeSharedPtr MetaType;
+            MethodType Method;
+        };
+    public:
+        void RegisterRoute(const String& pattern, engine::MetaTypeSharedPtr metatype, MethodType method = All);
+
+        api::ApiCommandBaseSharedPtr Match(const String& uri, MethodType method, std::map<String, String>& path, std::map<String, String>& queries);
+    private:
+        std::vector<RouteItem> Routes;
+    };
+    DECLARE_SHARED_PTR(Route)
+}

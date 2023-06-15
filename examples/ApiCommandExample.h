@@ -24,6 +24,8 @@ task::CoroTask<String> Print<Tools>::ExecutionCommand()
         res = std::make_pair(message_id.value(), Result::Success);
     }
 
+    LOG(Print, print_data.value());
+
     typename Tools::ParserType parser;
     parser.SetValue("MessageID", res.first);
     parser.SetValue("ResultID", res.second);

@@ -18,7 +18,7 @@ bool JsonParser::ParseFromFile(StringView file_name)
     }
     catch(const std::exception& e)
     {
-        ERROR(JsonParser, e.what());
+        ERROR(ParseFromFile, e.what());
         return false;
     }
 }
@@ -45,7 +45,7 @@ api::ApiCommandBaseSharedPtr JsonParser::ParseApiCommand(buffer_view& buffer)
     }
     catch(const std::exception& e)
     {
-        ERROR(JsonParser, e.what());
+        ERROR(ParseApiCommand, String(e.what()) + " " + String((char*)(buffer.data()), buffer.size()));
         return nullptr;
     }
 }
