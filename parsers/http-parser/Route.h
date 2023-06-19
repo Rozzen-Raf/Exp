@@ -3,18 +3,10 @@
 #include "Types.h"
 #include "MetaType.h"
 #include "ApiCommandBase.h"
+#include "HttpTypes.h"
 
 namespace http
 {
-    enum MethodType
-    {
-        GET,
-        POST,
-        PUT,
-        DELETE,
-        All
-    };
-
     class Route
     {
         struct RouteItem
