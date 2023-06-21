@@ -8,6 +8,12 @@
 
 namespace http
 {
+    struct HttpParserResult
+    {
+        ParseResult result;
+        String err_message;
+    };
+
     class HttpRequestParser
     {        
     public:
@@ -16,11 +22,14 @@ namespace http
             kMethod,
             kRequestLine,
             kHeaders,
-            kBody
+            kBody,
+            kReady
         };
 
-        ParseResult parse(Request& request, engine::BufferHelper buffer);
+        HttpParserResult parse(Request& request, engine::BufferHelper buffer);
     private:
+        bool ProcessRequestLine(Request& request, StringView request_line);
+
         HttpRequestParserStatus status = kMethod;
     };    
 }

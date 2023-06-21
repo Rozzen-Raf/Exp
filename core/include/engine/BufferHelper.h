@@ -4,6 +4,8 @@
 
 namespace engine
 {
+    static constexpr char CRLF[]{"\r\n"};
+
     template<typename ElType>
     class BufferHelperBase
     {
@@ -17,22 +19,28 @@ namespace engine
             ASSERT(view.size());
         }
         
-        ConstPointer Peek()
+        ConstPointer Peek() const noexcept
         {
             return ConstPointer(View.data()) + Head;
         }
 
-        ConstPointer begin()
+        ConstPointer begin() const noexcept
         {
             return ConstPointer(&View.data()[0]);
         }
 
-        ConstPointer end()
+        ConstPointer end() const noexcept
         {
             return ConstPointer(&View.data()[Tail]);
         }
 
-        void MoveTo(ConstPointer ptr)
+        ConstPointer FindCRLF() const noexcept
+        {
+            ConstPointer crlf = std::search(Peek(), end(), CRLF, CRLF + 2);
+            return crlf == end() ? nullptr : crlf;
+        }
+
+        void MoveTo(ConstPointer ptr) noexcept
         {
             ASSERT(ptr >= Peek());
             ASSERT(ptr <= end());
@@ -41,6 +49,10 @@ namespace engine
             ASSERT(Head + len <= Tail);
 
             Head += len; 
+        }
+
+        size_t Size() const noexcept{
+            return Head - Tail;
         }
 
     private:

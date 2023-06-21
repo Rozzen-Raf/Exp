@@ -8,6 +8,7 @@ namespace http
     {
     public:
         void AddHeader(const String& header, const String& Value) noexcept;
+        void AddHeader(const char* start, const char* colon, const char* end);
         void SetMethod(MethodType method) noexcept;
         bool SetMethod(StringView method) noexcept;
         void SetUri(const String& uri) noexcept;
