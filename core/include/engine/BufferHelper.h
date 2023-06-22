@@ -46,9 +46,14 @@ namespace engine
             ASSERT(ptr <= end());
             size_t len = ptr - Peek();
 
-            ASSERT(Head + len <= Tail);
+            MoveOn(len);
+        }
 
-            Head += len; 
+        void MoveOn(size_t length) noexcept
+        {
+            ASSERT(Head + length <= Tail);
+
+            Head += length; 
         }
 
         size_t Size() const noexcept{

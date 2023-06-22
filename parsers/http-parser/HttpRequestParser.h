@@ -12,6 +12,7 @@ namespace http
     {
         ParseResult result;
         String err_message;
+        ResponseCode code;
     };
 
     class HttpRequestParser
@@ -23,6 +24,9 @@ namespace http
             kRequestLine,
             kHeaders,
             kBody,
+            kChunkLen,
+            kChunkBody,
+            kLastEmptyChunk,
             kReady
         };
 
@@ -31,5 +35,7 @@ namespace http
         bool ProcessRequestLine(Request& request, StringView request_line);
 
         HttpRequestParserStatus status = kMethod;
+        size_t contentLenght = 0;
+        size_t chunkLength = 0;
     };    
 }
