@@ -18,13 +18,15 @@ struct ServerConfiguration
     uint SizeBytesInPacket;
 };
 
-template<class ConfParser, class ApiParser>
-ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler,
-                            uint SizeBytesInPacket = 256);
+struct RouteNil{};
+
+template<class ConfParser, class ApiParser, class Route = RouteNil>
+ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler, Route r = Route(),
+                            uint SizeBytesInPacket = 1024);
 
 template<class ConfParser>
 ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler,
-                        handler_packet_f handler, uint SizeBytesInPacket = 256);
+                        handler_packet_f handler, uint SizeBytesInPacket = 1024);
 
 class Server
 {
@@ -37,12 +39,12 @@ public:
 
     virtual void CloseSession(const ID_t& id) noexcept = 0;
 
-    template<class Parser>
-    void InitDefaultHandler();
+    template<class Parser, class Route = RouteNil>
+    void InitDefaultHandler(Route r);
 
 protected:
-    template<class ConfParser, class ApiParser>
-    friend ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler,
+    template<class ConfParser, class ApiParser, class Route>
+    friend ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler, Route r,
     uint SizeBytesInPacket);
     template<class ConfParser>
     friend ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler,
@@ -102,12 +104,12 @@ ServerSharedPtr Server::CreateServer(ConfParser& parser, engine::RegisterMediato
     return server;
 }
 
-template<class ConfParser, class ApiParser>
-ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler, 
+template<class ConfParser, class ApiParser, class Route>
+ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler, Route r,
 uint SizeBytesInPacket)
 {
     auto server = Server::CreateServer(parser, worker_mediator, sheduler, SizeBytesInPacket);
-    server->template InitDefaultHandler<ApiParser>();
+    server->template InitDefaultHandler<ApiParser, Route>(r);
     return server;
 }
 
@@ -120,13 +122,20 @@ ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr
     return server;
 }
 //---------------------------------------------------------------
-template<class Parser>
-void Server::InitDefaultHandler()
+
+template<class Parser, class Route>
+void Server::InitDefaultHandler(Route r)
 {
-    HandlerPacket = [](buffer_view& read_buffer) mutable -> task::CoroTask<String>
+    HandlerPacket = [r](buffer_view& read_buffer) mutable -> task::CoroTask<String>
     {
         String res;
         Parser parser;
+
+        if constexpr (!std::is_same_v<Route, RouteNil>)
+        {
+            parser.SetRoute(r);
+        }
+
         auto api_command = parser.ParseApiCommand(read_buffer);
 
         if(api_command)

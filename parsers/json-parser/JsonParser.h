@@ -68,6 +68,8 @@ public:
         return Data.dump();
     }
 
+    void Reset();
+
     api::ApiCommandBaseSharedPtr ParseApiCommand(buffer_view& buffer);
 private:
     json Data;

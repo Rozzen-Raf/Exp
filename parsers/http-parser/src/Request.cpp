@@ -113,7 +113,41 @@ const String& Request::GetHeader(const String& header) const noexcept
         return find_iter->second;
     }
     return defaulValue;
-} 
+}
+//-----------------------------------------------------------
+
+MethodType Request::GetMethod() const noexcept
+{
+    return Method;
+}
+//-----------------------------------------------------------
+
+const String& Request::GetUri() const noexcept
+{
+    return Uri;
+}
+//-----------------------------------------------------------
+
+const String& Request::GetBody() const noexcept
+{
+    return Body;
+}
+//-----------------------------------------------------------
+
+Version Request::GetVersion() const noexcept
+{
+    return mVersion;
+}
+//-----------------------------------------------------------
+void Request::Reset()
+{
+    Method = MethodType::Unknown;
+    Uri.clear();
+    mVersion.Reset();
+    Headers.clear();
+    Body.clear();  
+    Expect.clear();
+}
 //-----------------------------------------------------------
 //-----------------------------------------------------------
 //-----------------------------------------------------------

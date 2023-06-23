@@ -34,7 +34,13 @@ namespace http
 
     struct Version
     {
-        int VersionMajor;
-        int VersionMinor;
+        int VersionMajor = -1;
+        int VersionMinor = -1;
+
+        void Reset()
+        {
+            VersionMajor = -1;
+            VersionMinor = -1;
+        }
     };
 }

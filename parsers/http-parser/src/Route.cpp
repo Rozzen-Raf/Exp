@@ -62,7 +62,7 @@ api::ApiCommandBaseSharedPtr Route::Match(const String& uri, MethodType method, 
     if(!api_command)
         return api_command;
 
-    if(query.size() > 0)
+    if(query.size() > 1)
     {
         auto split_query = utils::split(query[1], "&");
         for(auto query_token : split_query)

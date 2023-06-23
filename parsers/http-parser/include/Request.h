@@ -20,6 +20,12 @@ namespace http
 
         const String& GetHeader(const String& header) const noexcept;
         size_t GetContentLenght() const noexcept;
+        MethodType GetMethod() const noexcept;
+        const String& GetUri() const noexcept;
+        Version GetVersion() const noexcept;
+        const String& GetBody() const noexcept;
+
+        void Reset();
 
     private:
         MethodType Method;
