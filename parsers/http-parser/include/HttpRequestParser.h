@@ -8,13 +8,6 @@
 
 namespace http
 {
-    struct HttpParserResult
-    {
-        ParseResult result;
-        String err_message;
-        ResponseCode code;
-    };
-
     class HttpRequestParser
     {        
     public:

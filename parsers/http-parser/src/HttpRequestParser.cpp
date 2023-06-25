@@ -112,9 +112,9 @@ namespace http
                 case kBody:
                 {
                     size_t bytesToConsume =
-                    contentLenght <= buffer.Size()
+                    contentLenght <= buffer.ReadableBytes()
                         ? contentLenght
-                        : buffer.Size();
+                        : buffer.ReadableBytes();
 
                     if(bytesToConsume)
                     {
@@ -135,7 +135,7 @@ namespace http
                     auto crlf = buffer.FindCRLF();
                     if(!crlf)
                     {
-                        if(buffer.Size() > TRUNK_LEN_MAX_LEN + CRLF_LEN)
+                        if(buffer.ReadableBytes() > TRUNK_LEN_MAX_LEN + CRLF_LEN)
                         {
                             return {ParseError, "", k400BadRequest};
                         }
@@ -157,7 +157,7 @@ namespace http
                 }
                 case kChunkBody:
                 {
-                    if(buffer.Size() <  (chunkLength + CRLF_LEN))
+                    if(buffer.ReadableBytes() <  (chunkLength + CRLF_LEN))
                     {
                         return {ParseUncompleted, "", kUnknown};
                     }
@@ -176,7 +176,7 @@ namespace http
                 }
                 case kLastEmptyChunk:
                 {
-                    if(buffer.Size() < CRLF_LEN)
+                    if(buffer.ReadableBytes() < CRLF_LEN)
                     {
                         return {ParseUncompleted, "", kUnknown};
                     }
@@ -198,7 +198,7 @@ namespace http
             }
         }
 
-        return {ParseUncompleted, ""};
+        return {ParseUncompleted, "", kUnknown};
     }
 
     bool HttpRequestParser::ProcessRequestLine(Request& request, StringView request_line)

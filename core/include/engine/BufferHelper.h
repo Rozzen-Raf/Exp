@@ -56,7 +56,7 @@ namespace engine
             Head += length; 
         }
 
-        size_t Size() const noexcept{
+        size_t ReadableBytes() const noexcept{
             return Head - Tail;
         }
 
