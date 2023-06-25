@@ -1,13 +1,25 @@
 #include "Headers.h"
 #include "ApiCommandExample.h"
-using namespace parse;
+#include "HttpParser.h"
+#include "JsonParser.h"
 namespace api
 {
-    METATYPE_DEF_TEMPL(Print<JsonParser>)
+    using namespace http;
+    using namespace parse;
+    METATYPE_DEF_TEMPL(Print<DefaultTools<HttpParser<JsonParser>>>)
     void RegisterMetaType()
     {
-        REGISTER_METATYPE_TEMPL(Print, JsonParser)
+        REGISTER_METATYPE_TEMPL(Print, DefaultTools<HttpParser<JsonParser>>)
     }
+}
+
+http::RouteSharedPtr CreateRoute()
+{
+    auto route = std::make_shared<http::Route>();
+
+    route->RegisterRoute("/print", engine::MetaData::GetMetaData()->GetMetaType("Print"));
+
+    return route;
 }
 
 int main( int argc, char* argv[] ) 
@@ -29,7 +41,7 @@ int main( int argc, char* argv[] )
         String config = "{\
             \"Server\" : {\
                 \"Host\" : \"127.0.0.1\",\
-                \"Port\" : 11111,\
+                \"Port\" : 1111,\
                 \"Type\" : \"TcpServer\"\
             }\
 		}";
@@ -42,7 +54,7 @@ int main( int argc, char* argv[] )
             return 1;
 
         RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<io::EpollWorker>>(worker);
-        auto server = io::CreateServer(parser, mediator, sheduler);
+        auto server = io::CreateServer<parse::JsonParser, http::HttpParser<parse::JsonParser>>(parser, mediator, sheduler, CreateRoute());
         if(!server)
         {
             throw std::runtime_error("server not created");

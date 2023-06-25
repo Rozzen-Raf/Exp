@@ -31,7 +31,7 @@ public:
         }
         catch(const std::exception& e)
         {
-            ERROR(JsonParser, e.what());
+            ERROR(Parse, e.what());
             return false;
         }
     }
@@ -46,7 +46,7 @@ public:
 		}
 		catch (const std::exception& e)
 		{
-            ERROR(JsonParser, e.what());
+            ERROR(GetValue, e.what());
             return {};
         }
     }
@@ -68,7 +68,9 @@ public:
         return Data.dump();
     }
 
-    static std::pair<api::ApiCommandBaseSharedPtr, JsonParser> ParseApiCommand(buffer_view& buffer);
+    void Reset();
+
+    api::ApiCommandBaseSharedPtr ParseApiCommand(buffer_view& buffer);
 private:
     json Data;
 };

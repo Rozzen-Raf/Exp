@@ -1,8 +1,9 @@
 #include "Headers.h"
+#include "JsonParser.h"
 
 TEST_CASE("PrintCommandTest", "PrintCommandTest")
 {
-    io::IPEndPoint endpoint("127.0.0.1", 11111);
+    io::IPEndPoint endpoint("127.0.0.1", 1111);
 
     io::Socket client(io::IPv::IPv4);
     bool status = client.Create();
