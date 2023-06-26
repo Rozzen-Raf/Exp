@@ -5,7 +5,7 @@
 
 namespace http
 {
-    class Response
+    class ResponseImpl
     {
     public:
         void SetVersion(Version version) noexcept;

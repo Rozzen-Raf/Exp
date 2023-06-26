@@ -42,7 +42,7 @@ namespace http
             }
         private:
             RouteSharedPtr mRoute;
-            Request mRequest;
+            RequestImpl mRequest;
             std::map<String, String> RequestInPath;
             std::map<String, String> Queries;
             BodyParser mParser;

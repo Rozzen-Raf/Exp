@@ -3,13 +3,13 @@
 namespace http{
 //-----------------------------------------------------------
 
-void Response::AddHeader(const String& header, const String& value) noexcept
+void ResponseImpl::AddHeader(const String& header, const String& value) noexcept
 {
     Headers.emplace(header, value);
 }
 //-----------------------------------------------------------
 
-void Response::AddHeader(const char* start, const char* colon, const char* end)
+void ResponseImpl::AddHeader(const char* start, const char* colon, const char* end)
 {
     String header(start, colon);
 
@@ -38,56 +38,56 @@ void Response::AddHeader(const char* start, const char* colon, const char* end)
 }
 //-----------------------------------------------------------
 
-void Response::SetBody(const String& body) noexcept
+void ResponseImpl::SetBody(const String& body) noexcept
 {
     Body = body;
 }
 //-----------------------------------------------------------
 
-void Response::SetContentType(ContentTypeCode content_type) noexcept
+void ResponseImpl::SetContentType(ContentTypeCode content_type) noexcept
 {
     mContentType = content_type;
 }
 //-----------------------------------------------------------
 
-void Response::SetStatusCode(HttpStatusCode status) noexcept
+void ResponseImpl::SetStatusCode(HttpStatusCode status) noexcept
 {
     mStatusCode = status;
 }
 //-----------------------------------------------------------
 
-void Response::SetVersion(Version version) noexcept
+void ResponseImpl::SetVersion(Version version) noexcept
 {
     mVersion = version;
 }
 //-----------------------------------------------------------
 
-void Response::ReserveBody(size_t contentLenght) noexcept
+void ResponseImpl::ReserveBody(size_t contentLenght) noexcept
 {
     Body.reserve(contentLenght);
 }
 //-----------------------------------------------------------
 
-void Response::AppendToBody(const char* data, size_t count)
+void ResponseImpl::AppendToBody(const char* data, size_t count)
 {
     //Simple impl
     Body.append(data, count);
 }
 //-----------------------------------------------------------
 
-size_t Response::GetContentLenght() const noexcept
+size_t ResponseImpl::GetContentLenght() const noexcept
 {
     return Body.length();
 }
 //-----------------------------------------------------------
 
-void Response::RemoveHeader(const String& header)
+void ResponseImpl::RemoveHeader(const String& header)
 {
     Headers.erase(header);
 }
 //-----------------------------------------------------------
 
-const String& Response::GetHeader(const String& header) const noexcept
+const String& ResponseImpl::GetHeader(const String& header) const noexcept
 {
     const static String defaulValue;
     auto find_iter = Headers.find(header);
@@ -99,31 +99,31 @@ const String& Response::GetHeader(const String& header) const noexcept
 }
 //-----------------------------------------------------------
 
-const String& Response::GetBody() const noexcept
+const String& ResponseImpl::GetBody() const noexcept
 {
     return Body;
 }
 //-----------------------------------------------------------
 
-Version Response::GetVersion() const noexcept
+Version ResponseImpl::GetVersion() const noexcept
 {
     return mVersion;
 }
 //-----------------------------------------------------------
 
-HttpStatusCode Response::GetStatusCode() const noexcept
+HttpStatusCode ResponseImpl::GetStatusCode() const noexcept
 {
     return mStatusCode;
 }
 //-----------------------------------------------------------
 
-ContentTypeCode Response::GetContentType() const noexcept
+ContentTypeCode ResponseImpl::GetContentType() const noexcept
 {
     return mContentType;
 }
 //-----------------------------------------------------------
 
-void Response::Reset()
+void ResponseImpl::Reset()
 {
     mContentType = CT_NONE;
     mStatusCode = kUnknown;
@@ -133,19 +133,19 @@ void Response::Reset()
 }
 //-----------------------------------------------------------
 
-void Response::SetStatus(const String& status) noexcept
+void ResponseImpl::SetStatus(const String& status) noexcept
 {
     Status = status;
 }
 //-----------------------------------------------------------
 
-const String& Response::GetStatus() const noexcept
+const String& ResponseImpl::GetStatus() const noexcept
 {
     return Status;
 }
 //-----------------------------------------------------------
 
-String Response::ToMessage() const noexcept
+String ResponseImpl::ToMessage() const noexcept
 {
     std::stringstream stream;
 
