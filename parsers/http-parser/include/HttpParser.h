@@ -21,25 +21,6 @@ namespace http
             {
                 return mParser.template GetValue<T>(key);
             }
-
-            template<typename T>
-            inline void SetValue(const String& key_name, const T& value)
-            {
-                //Data[key_name] = value;
-            }
-
-            template<typename T>
-            inline void SetValue(String&& key_name, T&& value)
-            {
-                //Data[std::move(key_name)] = std::move(value);
-            }
-
-            inline const String& Dump()
-            {
-                static const String default_msg = "{\"ResultID\" : 1, \"MessageID\" : 1}";
-                return default_msg;
-                //return Data.dump();
-            }
         private:
             RouteSharedPtr mRoute;
             RequestImpl mRequest;

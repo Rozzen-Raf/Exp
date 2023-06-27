@@ -1,7 +1,7 @@
 FROM ubuntu:latest AS build-stage
 
 RUN apt update && \
-    apt install -y cmake git coreutils g++ libc-dev make
+    apt install -y cmake git coreutils g++ libc-dev make libssl-dev
 
 RUN g++ -v
 

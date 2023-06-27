@@ -110,6 +110,8 @@ struct AwaitableData
 #define DECLARE_UNIQUE_PTR(T) class T;\
     using T##UniquePtr = std::unique_ptr<T>;
 
+#define UNIQUE_PTR(T) using T##UniquePtr = std::unique_ptr<T>;
+
 #define LOG(a, m) std::cout << #a << ": " << m << std::endl;
 
 #define ERROR(a,m) std::cerr << #a << ": " << m << std::endl;

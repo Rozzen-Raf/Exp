@@ -2,7 +2,7 @@ project(parser-help CXX)
 
 add_library(${PROJECT_NAME} ParserUtils.h)
 
-set(PARSE_INCLUDE_DIR "./")
+set(PARSE_INCLUDE_DIR "./" "${EXTERNAL_DIR}/json/single_include/nlohmann")
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PARSE_INCLUDE_DIR})
 

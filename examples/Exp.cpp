@@ -8,6 +8,7 @@
 #include <cstddef>
 #include "Socket.h"
 #include "TcpServer.h"
+#include "DatabaseHelper.hpp"
 using namespace parse;
 namespace api
 {
@@ -29,7 +30,7 @@ using namespace engine;
 int main()
 {
     signal(SIGINT, signalHandler);
-
+    
 	try{
         api::RegisterMetaType();
         using CoroPool = task::ThreadPool<>;

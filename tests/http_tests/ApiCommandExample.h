@@ -1,6 +1,6 @@
 #pragma once
 #include "ApiCommandBase.h"
-
+#include "Response.h"
 namespace api
 {
 
@@ -26,10 +26,8 @@ task::CoroTask<String> Print<Tools>::ExecutionCommand()
 
     LOG(Print, print_data.value());
 
-    typename Tools::ParserType parser;
-    parser.SetValue("MessageID", res.first);
-    parser.SetValue("ResultID", res.second);
+    http::ResponseImpl response;
 
-    co_return parser.Dump();
+    co_return response.ToMessage();
 }
 }
