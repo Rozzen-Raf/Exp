@@ -9,6 +9,12 @@ namespace mariadb
     }
     //-----------------------------------------------------------
 
+    Database::~Database()
+    {
+        Close();
+    }
+    //-----------------------------------------------------------
+
     bool Database::Connect(const io::IPEndPoint& endpoint, const AuthSettings& auth)
     {
         try
@@ -42,6 +48,31 @@ namespace mariadb
             ERROR(Database, stream.str());
             return false;
         }
+    }
+    //-----------------------------------------------------------
+
+    ResultSetSharedPtr Database::ExecuteQuery(const String& query)
+    {
+        try
+        {
+            PreparedStatementUniquePtr stmnt(ConnPtr->prepareStatement(query));
+
+            return ResultSetSharedPtr(stmnt->executeQuery());
+        }
+        catch(SQLException& e)
+        {
+            std::stringstream stream;
+            stream << "Error connection to mariadb: " << e.what() << ". Error code: " << e.getErrorCode();
+            ERROR(Database, stream.str());
+            return nullptr;
+        }
+    }
+    //-----------------------------------------------------------
+
+    void Database::Close()
+    {
+        if(ConnPtr)
+            ConnPtr->close();
     }
     //-----------------------------------------------------------
     //-----------------------------------------------------------

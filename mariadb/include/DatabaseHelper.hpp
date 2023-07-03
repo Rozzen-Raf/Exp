@@ -4,16 +4,18 @@
 #include "IPEndPoint.h"
 namespace mariadb
 {
-    using Connection = sql::Connection;
-    UNIQUE_PTR(Connection);
     class Database
     {
     public:
         Database(const io::IPEndPoint& endpoint, const AuthSettings& auth);
-        ~Database() = default;
+        ~Database();
+
+    public:
+        ResultSetSharedPtr ExecuteQuery(const String& query);
 
     private:
         bool Connect(const io::IPEndPoint& endpoint, const AuthSettings& auth);
+        void Close();
         ConnectionUniquePtr ConnPtr;
     };
 }

@@ -112,6 +112,8 @@ struct AwaitableData
 
 #define UNIQUE_PTR(T) using T##UniquePtr = std::unique_ptr<T>;
 
+#define SHARED_PTR(T) using T##SharedPtr = std::shared_ptr<T>;
+
 #define LOG(a, m) std::cout << #a << ": " << m << std::endl;
 
 #define ERROR(a,m) std::cerr << #a << ": " << m << std::endl;
