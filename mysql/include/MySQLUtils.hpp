@@ -1,45 +1,45 @@
 #pragma once
 
-#include "MariadDBTypes.hpp"
+#include "MySQLTypes.hpp"
 
-namespace mariadb
+namespace mysql
 {
-    bool PrepareStmtFromType(PreparedStatementUniquePtr& stmt, int index, const std::any& value, MariaDataType type);
+    //bool PrepareStmtFromType(PreparedStatementUniquePtr& stmt, int index, const std::any& value, DataType type);
 
     template<typename T>
-    MariaDataType GetType()
+    DataType GetType()
     {
         if constexpr (std::is_same_v<int8_t, T>)
         {
-            return MariaDataType::CHAR;
+            return DataType::CHAR;
         }
         else if constexpr(std::is_same_v<int16_t, T>)
         {
-            return MariaDataType::SHORT;
+            return DataType::SHORT;
         }
         else if constexpr(std::is_same_v<int32_t, T>)
         {
-            return MariaDataType::INTEGER;
+            return DataType::INTEGER;
         }
         else if constexpr(std::is_same_v<int64_t, T>)
         {
-            return MariaDataType::LONG;
+            return DataType::LONG;
         }
         else if constexpr(std::is_same_v<uint64_t, T>)
         {
-            return MariaDataType::ULONG;
+            return DataType::ULONG;
         }
         else if constexpr(std::is_same_v<String, T>)
         {
-            return MariaDataType::STRING;
+            return DataType::STRING;
         }
         else if constexpr(std::is_same_v<std::chrono::system_clock::time_point, T>)
         {
-            return MariaDataType::TIMESTAMP;
+            return DataType::TIMESTAMP;
         }
         else 
         {
-            static_assert(!sizeof(T), "Unknown MariaDataType");
+            static_assert(!sizeof(T), "Unknown DataType");
         }
     }
 }

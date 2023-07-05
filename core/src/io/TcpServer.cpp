@@ -26,6 +26,7 @@ TcpServer::~TcpServer()
     LOG(TcpServer, "destroy");
     IsWorking = false;
     Sessions.clear();
+    Register->Unregister(listener.Desc());
 }
 //--------------------------------------------------------
 
@@ -91,6 +92,7 @@ void TcpServer::CloseSession(const ID_t &id) noexcept
 {
     lock_t l(mutex);
     Sessions.erase(id);
+    Register->Unregister(id);
 }
 //--------------------------------------------------------
 //--------------------------------------------------------

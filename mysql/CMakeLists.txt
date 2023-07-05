@@ -1,4 +1,4 @@
-project(mariadb CXX)
+project(mysql CXX)
 
 file(GLOB SOURCE_FILES
 "./src/*.cpp"
@@ -7,9 +7,8 @@ file(GLOB SOURCE_FILES
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES})
 
-target_link_libraries(${PROJECT_NAME} -L/mariadb/)
 target_link_libraries(${PROJECT_NAME} core)
 
-set(INCLUDE_DIR "./include" "${EXTERNAL_DIR}/mariadb-connector-cpp/include")
+set(INCLUDE_DIR "./include")
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR})

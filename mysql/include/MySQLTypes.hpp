@@ -1,12 +1,10 @@
 #pragma once
 
-#include "conncpp.hpp"
 #include "Types.h"
+#include "mysql/mysql.h"
 
-namespace mariadb
+namespace mysql
 {
-    using namespace sql;
-
     struct AuthSettings
     {
         String database;
@@ -14,10 +12,9 @@ namespace mariadb
         String password;
     };
 
-    enum class MariaDataType
+    enum class DataType
     {
-          ARRAY = 1
-        , STRING
+          STRING = 1
         , BOOLEAN
         , CHAR
         , DOUBLE
@@ -31,12 +28,12 @@ namespace mariadb
     
     struct BindingItem
     {
-        MariaDataType type;
+        DataType type;
         std::any value;
     };
     
     template<typename T>
-    MariaDataType GetType();
+    DataType GetType();
 
     class PreparedStatementBindingData
     {
@@ -55,10 +52,4 @@ namespace mariadb
         private:
         std::vector<BindingItem> BindingData;
     };
-
-    UNIQUE_PTR(ResultSet)
-    UNIQUE_PTR(Connection)
-    UNIQUE_PTR(PreparedStatement)
-
-    SHARED_PTR(ResultSet)
 }

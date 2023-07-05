@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-
+#include "Concepts.h"
 namespace engine
 {
 class RegisterMediatorBase
@@ -21,15 +21,29 @@ public:
 
     virtual int Register(const std::any& reg_instance) noexcept final
     {
-        return instance->Register(reg_instance);
+        if constexpr(HasRegister<T, decltype(reg_instance)>)
+        {
+            return instance->Register(reg_instance);
+        }
+        else
+        {
+            return -1;
+        }
     }
     virtual int Unregister(const std::any& unreg_instance) noexcept final
     {
-        return instance->Unregister(unreg_instance);
+        if constexpr(HasUnregister<T, decltype(unreg_instance)>)
+        {
+            return instance->Unregister(unreg_instance);
+        }
+        else
+        {
+            return -1;
+        }
     }
     virtual int Type() const noexcept final
     {
-        return T::worker_type;
+        return T::Type;
     }
 };
 typedef std::shared_ptr<RegisterMediatorBase> RegisterMediatorBasePtr;

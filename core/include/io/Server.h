@@ -21,12 +21,12 @@ struct ServerConfiguration
 struct RouteNil{};
 
 template<class ConfParser, class ApiParser, class Route = RouteNil>
-ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler, Route r = Route(),
+ServerSharedPtr CreateServer(ConfParser& parser, task::ShedulerSharedPtr sheduler, engine::RegisterMediatorBasePtr worker_mediator, Route r = Route(),
                             uint SizeBytesInPacket = 1024);
 
 template<class ConfParser>
-ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler,
-                        handler_packet_f handler, uint SizeBytesInPacket = 1024);
+ServerSharedPtr CreateServer(ConfParser& parser, task::ShedulerSharedPtr sheduler, 
+                        handler_packet_f handler, engine::RegisterMediatorBasePtr worker_mediator, uint SizeBytesInPacket = 1024);
 
 class Server
 {
@@ -44,11 +44,11 @@ public:
 
 protected:
     template<class ConfParser, class ApiParser, class Route>
-    friend ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler, Route r,
+    friend ServerSharedPtr CreateServer(ConfParser& parser, task::ShedulerSharedPtr sheduler, engine::RegisterMediatorBasePtr worker_mediator, Route r,
     uint SizeBytesInPacket);
     template<class ConfParser>
-    friend ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler,
-    handler_packet_f handler, uint SizeBytesInPacket);
+    friend ServerSharedPtr CreateServer(ConfParser& parser, task::ShedulerSharedPtr sheduler, 
+    handler_packet_f handler, engine::RegisterMediatorBasePtr worker_mediator, uint SizeBytesInPacket);
 
     template<class ConfParser>
     static ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr mediator, task::ShedulerSharedPtr sheduler, uint SizeBytesInPacket);
@@ -61,11 +61,16 @@ protected:
 template<class ConfParser>
 ServerSharedPtr Server::CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr mediator, task::ShedulerSharedPtr sheduler, uint SizeBytesInPacket)
 {
+    if(!mediator)
+    {
+        ERROR(Server, "mediator is null");
+    }
+
     engine::RegisterAllMetaClass();
     auto server_opt = parser.template GetValue<typename ConfParser::BlockType>("Server");
     if(!server_opt.has_value())
     {
-        ERROR(main, "Config file is not contains Server");
+        ERROR(Server, "Config file is not contains Server");
         return nullptr;
     }
     ConfParser server_config(std::move(server_opt.value()));
@@ -73,7 +78,7 @@ ServerSharedPtr Server::CreateServer(ConfParser& parser, engine::RegisterMediato
     auto type_opt = server_config.template GetValue<String>("Type");
     if(!type_opt.has_value())
     {
-        ERROR(main, "Config file is not contains Server:Type");
+        ERROR(Server, "Config file is not contains Server:Type");
         return nullptr;
     }
 
@@ -83,7 +88,7 @@ ServerSharedPtr Server::CreateServer(ConfParser& parser, engine::RegisterMediato
 
     if(!host_opt.has_value())
     {
-        ERROR(TcpServer, "Config file is not contains Host");
+        ERROR(Server, "Config file is not contains Host");
         return nullptr;
     }
     conf.host = std::move(host_opt.value());
@@ -91,7 +96,7 @@ ServerSharedPtr Server::CreateServer(ConfParser& parser, engine::RegisterMediato
     auto port_opt = server_config.template GetValue<uint>("Port");
     if(!port_opt.has_value())
     {
-        ERROR(TcpServer, "Config file is not contains Port");
+        ERROR(Server, "Config file is not contains Port");
         return nullptr;
     }
     conf.port = port_opt.value();
@@ -105,7 +110,7 @@ ServerSharedPtr Server::CreateServer(ConfParser& parser, engine::RegisterMediato
 }
 
 template<class ConfParser, class ApiParser, class Route>
-ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler, Route r,
+ServerSharedPtr CreateServer(ConfParser& parser, task::ShedulerSharedPtr sheduler, engine::RegisterMediatorBasePtr worker_mediator, Route r,
 uint SizeBytesInPacket)
 {
     auto server = Server::CreateServer(parser, worker_mediator, sheduler, SizeBytesInPacket);
@@ -114,8 +119,8 @@ uint SizeBytesInPacket)
 }
 
 template<class ConfParser>
-ServerSharedPtr CreateServer(ConfParser& parser, engine::RegisterMediatorBasePtr worker_mediator, task::ShedulerSharedPtr sheduler,
-                        handler_packet_f handler, uint SizeBytesInPacket)
+ServerSharedPtr CreateServer(ConfParser& parser, task::ShedulerSharedPtr sheduler,
+                        handler_packet_f handler, engine::RegisterMediatorBasePtr worker_mediator, uint SizeBytesInPacket)
 {
     auto server = Server::CreateServer(parser, worker_mediator, sheduler, SizeBytesInPacket);
     server->HandlerPacket = handler;

@@ -15,7 +15,8 @@ task::CoroTask<engine::AwaitableResult> Listener::AsyncAccept(task::ShedulerShar
 		if(!status)
             co_return status;
 	}
-    Register->Register(ret);
+    if(Register)
+        Register->Register(ret);
     co_return engine::AwaitableResult{engine::WakeUp, ret, "", 0};
 }
 //--------------------------------------------------------------------------------------
@@ -29,7 +30,8 @@ engine::AwaitableResult Listener::Accept() noexcept
             return engine::AwaitableResult{engine::Error, fd_, "Failed to accept", errno};
         continue;
     }
-    Register->Register(ret);
+    if(Register)
+        Register->Register(ret);
     return engine::AwaitableResult{engine::Success, ret, "", 0};
 }
 //--------------------------------------------------------------------------------------

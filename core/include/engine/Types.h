@@ -69,34 +69,19 @@ using buffer_ptr = std::shared_ptr<buffer>;
 using handler_packet_f = std::function<task::CoroTask<String>(buffer_view&)>;
 enum WorkerType
 {
-	NONE,
-	EPOLL
+	  NONE
+	, EPOLL
+	, LIBEVENT
 };
 
 enum StatusType
 {
-	Error, WakeUp, Wait, HangUp, Success
-};
-
-struct AwaitableResult
-{
-	StatusType type = Wait;
-    UID_t id;
-	String err_message;
-	int err;
-
-    constexpr operator bool() const { return type == WakeUp || type == Success;}
-};
-
-struct AwaitableData
-{
-    AwaitableData(WorkerType t, UID_t&& event_id) : EventID(std::move(event_id)), continuation(std::noop_coroutine()), type(t), result{} {}
-
-	UID_t EventID;
-	std::coroutine_handle<> continuation;
-	AwaitableResult result;
-	WorkerType type;
-	bool NeedUnreg = true;
+	  Error
+	, WakeUp
+	, Wait
+	, HangUp
+	, Success
+	, Timeout
 };
 
 #define DECLARE_SHARED_PTR(T) class T; using T##SharedPtr = std::shared_ptr<T>;

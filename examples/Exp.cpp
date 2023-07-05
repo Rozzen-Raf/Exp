@@ -9,6 +9,7 @@
 #include "Socket.h"
 #include "TcpServer.h"
 #include "DatabaseHelper.hpp"
+
 using namespace parse;
 namespace api
 {
@@ -37,21 +38,26 @@ int main()
         task::ProcessorSharedPtr processor = std::make_shared<task::TaskProcessorModel<CoroPool>>(8);
 		task::ShedulerSharedPtr sheduler = std::make_shared<task::Sheduler>(processor);
 
-		io::EpollWorkerSharedPtr worker = std::make_shared<io::EpollWorker>(OnlyByID);
+		io::EpollWorkerSharedPtr worker = std::make_shared<io::EpollWorker>();
 		sheduler->RegisterWorker(worker);
 
         RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<io::EpollWorker>>(worker);
 
         JsonParser parser;
-        parser.ParseFromFile("config.json");
-
-        auto server = io::CreateServer<JsonParser, JsonParser>(parser, mediator, sheduler);
-        if(!server)
+        if(parser.ParseFromFile("config.json"))
         {
-            throw std::runtime_error("server not created");
+            auto server = io::CreateServer<JsonParser, JsonParser>(parser, sheduler, mediator);
+            if(!server)
+            {
+                throw std::runtime_error("server not created");
+            }
+            sheduler->CoroStart(server->AsyncServerRun());
+            sheduler->Run();
         }
-        sheduler->CoroStart(server->AsyncServerRun());
-		sheduler->Run();
+        else
+        {
+            ERROR(main, "Config file is not exist");
+        }
 	}
 	catch (const std::exception& ex)
     {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "MariadDBTypes.hpp"
+#include "MySQLTypes.hpp"
 #include "IPEndPoint.h"
-namespace mariadb
+namespace mysql
 {
     class Database
     {
@@ -10,12 +10,8 @@ namespace mariadb
         Database(const io::IPEndPoint& endpoint, const AuthSettings& auth);
         ~Database();
 
-    public:
-        ResultSetSharedPtr ExecuteQuery(const String& query);
-
     private:
         bool Connect(const io::IPEndPoint& endpoint, const AuthSettings& auth);
         void Close();
-        ConnectionUniquePtr ConnPtr;
     };
 }
