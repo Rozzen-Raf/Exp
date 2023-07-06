@@ -20,10 +20,12 @@ public:
     explicit IPEndPoint(sockaddr* addr);
 
     sockaddr_in GetSockaddrIPv4() const noexcept;
+    const String& GetIP() const noexcept;
+    uint16_t GetPort() const noexcept;
 private:
     IPv Version = IPv4;
     uint16_t Port = 0;
-    std::string IP;
+    String IP;
     std::vector<uint8_t> IPBytes;
 };
 }

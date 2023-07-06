@@ -3,7 +3,7 @@ namespace http
 {
 //-------------------------------------------------------------------
 
-HttpParserResult HttpResponseParser::parse(Response& response, engine::BufferHelper buffer)
+HttpParserResult HttpResponseParser::parse(ResponseImpl& response, engine::BufferHelper buffer)
 {
     bool ok = true;
     bool hasMore = true;
@@ -190,7 +190,7 @@ HttpParserResult HttpResponseParser::parse(Response& response, engine::BufferHel
 }
 //-------------------------------------------------------------------
 
-bool HttpResponseParser::ProcessResponseLine(Response& response, StringView response_line)
+bool HttpResponseParser::ProcessResponseLine(ResponseImpl& response, StringView response_line)
 {
     auto http = response_line.find("HTTP/");
     bool res = http != StringView::npos;

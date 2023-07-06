@@ -6,7 +6,7 @@ namespace http
 
     static constexpr size_t CRLF_LEN = 2;
     static constexpr size_t TRUNK_LEN_MAX_LEN = 16;
-    HttpParserResult HttpRequestParser::parse(Request& request, engine::BufferHelper buffer)
+    HttpParserResult HttpRequestParser::parse(RequestImpl& request, engine::BufferHelper buffer)
     {      
         while(true)
         {
@@ -201,7 +201,7 @@ namespace http
         return {ParseUncompleted, "", kUnknown};
     }
 
-    bool HttpRequestParser::ProcessRequestLine(Request& request, StringView request_line)
+    bool HttpRequestParser::ProcessRequestLine(RequestImpl& request, StringView request_line)
     {
         bool res = false;
         // const char* start = request_line.data();

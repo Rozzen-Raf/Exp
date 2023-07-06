@@ -41,4 +41,14 @@ sockaddr_in IPEndPoint::GetSockaddrIPv4() const noexcept
 
 	return addr;
 }
+
+const String& IPEndPoint::GetIP() const noexcept
+{
+	return IP;
+}
+
+uint16_t IPEndPoint::GetPort() const noexcept
+{
+	return Port;
+}
 }

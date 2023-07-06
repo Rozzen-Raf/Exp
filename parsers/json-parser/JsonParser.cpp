@@ -13,6 +13,12 @@ bool JsonParser::ParseFromFile(StringView file_name)
     {
         std::ifstream f(file_name.data());
 
+        if(!f.is_open())
+        {
+            ERROR(JsonParser, "Failed to open file");
+            return false;
+        }
+
         Data = json::parse(f);
         return true;
     }

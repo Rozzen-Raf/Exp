@@ -4,7 +4,7 @@
 #include "HttpTypes.h"
 namespace http
 {
-    class Request
+    class RequestImpl
     {
     public:
         void AddHeader(const String& header, const String& Value) noexcept;
@@ -26,6 +26,8 @@ namespace http
         const String& GetBody() const noexcept;
 
         void Reset();
+
+        String ToMessage() const noexcept;
 
     private:
         MethodType Method;

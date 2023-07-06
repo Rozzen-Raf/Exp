@@ -8,8 +8,8 @@ private:
 using mutex_t = std::recursive_mutex;
 using lock_t = std::unique_lock<mutex_t>;
 public:
-	static int worker_type;
-    EpollWorker(engine::WorkFlag flag);
+	enum {Type = engine::EPOLL};
+    EpollWorker();
 
 	virtual void RegAwaitable(engine::AwaitableData* data) noexcept final;
 
@@ -21,15 +21,10 @@ public:
 
     virtual engine::ID_t GetID() const noexcept final{ return EpollFd;}
 
-	virtual engine::WorkerType GetType() const noexcept final { return engine::WorkerType::EPOLL; }
+	virtual engine::WorkerType GetType() const noexcept final { return static_cast<engine::WorkerType>(Type); }
+    int Register(const std::any& fd);
 
-    virtual int Register(const std::any& fd) final;
-
-    virtual int Unregister(const std::any& fd) final;
-
-private:
-    void EmitWithAllFlags(engine::AwaitableResult&& res);
-    void EmitWithOnlyByIDFlags(engine::AwaitableResult&& res);
+    int Unregister(const std::any& fd);
 
 private:
 	std::unordered_map<engine::UID_t, engine::AwaitableData*> Awaitables;

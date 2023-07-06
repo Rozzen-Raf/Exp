@@ -23,10 +23,10 @@ struct Awaitable
         }
 
         bool await_ready() noexcept { return false; }
-    void await_suspend(std::coroutine_handle<> caller) {
+        void await_suspend(std::coroutine_handle<> caller) {
                 data.continuation = caller;
                 Worker->RegAwaitable(&data);
-        return;
+                return;
         }
         engine::AwaitableResult await_resume() const
         {

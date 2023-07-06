@@ -23,9 +23,9 @@ namespace http
             kReady
         };
 
-        HttpParserResult parse(Request& request, engine::BufferHelper buffer);
+        HttpParserResult parse(RequestImpl& request, engine::BufferHelper buffer);
     private:
-        bool ProcessRequestLine(Request& request, StringView request_line);
+        bool ProcessRequestLine(RequestImpl& request, StringView request_line);
 
         HttpRequestParserStatus status = kMethod;
         size_t contentLenght = 0;

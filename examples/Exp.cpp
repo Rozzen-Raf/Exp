@@ -8,6 +8,8 @@
 #include <cstddef>
 #include "Socket.h"
 #include "TcpServer.h"
+#include "DatabaseHelper.hpp"
+
 using namespace parse;
 namespace api
 {
@@ -29,28 +31,34 @@ using namespace engine;
 int main()
 {
     signal(SIGINT, signalHandler);
-
+    
 	try{
         api::RegisterMetaType();
         using CoroPool = task::ThreadPool<>;
         task::ProcessorSharedPtr processor = std::make_shared<task::TaskProcessorModel<CoroPool>>(8);
 		task::ShedulerSharedPtr sheduler = std::make_shared<task::Sheduler>(processor);
 
-		io::EpollWorkerSharedPtr worker = std::make_shared<io::EpollWorker>(OnlyByID);
+		io::EpollWorkerSharedPtr worker = std::make_shared<io::EpollWorker>();
 		sheduler->RegisterWorker(worker);
 
         RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<io::EpollWorker>>(worker);
+        mysql::Database db(sheduler, mediator, {"127.0.0.1", 3306}, {"", "", ""});
 
         JsonParser parser;
-        parser.ParseFromFile("config.json");
-
-        auto server = io::CreateServer<JsonParser, JsonParser>(parser, mediator, sheduler);
-        if(!server)
+        if(parser.ParseFromFile("config.json"))
         {
-            throw std::runtime_error("server not created");
+            auto server = io::CreateServer<JsonParser, JsonParser>(parser, sheduler, mediator);
+            if(!server)
+            {
+                throw std::runtime_error("server not created");
+            }
+            sheduler->CoroStart(server->AsyncServerRun());
+            sheduler->Run();
         }
-        sheduler->CoroStart(server->AsyncServerRun());
-		sheduler->Run();
+        else
+        {
+            ERROR(main, "Config file is not exist");
+        }
 	}
 	catch (const std::exception& ex)
     {

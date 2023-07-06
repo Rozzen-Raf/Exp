@@ -19,8 +19,8 @@ namespace http
             kClose,
             kReady
         };
-        HttpParserResult parse(Response& response, engine::BufferHelper buffer);
-        bool ProcessResponseLine(Response& responce, StringView responce_line);
+        HttpParserResult parse(ResponseImpl& response, engine::BufferHelper buffer);
+        bool ProcessResponseLine(ResponseImpl& responce, StringView responce_line);
     private:
         HttpResponseParseStatus status;
         size_t contentSize = 0;

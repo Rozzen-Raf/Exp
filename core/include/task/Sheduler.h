@@ -34,7 +34,7 @@ public:
 
 	Awaitable event(engine::WorkerType type, engine::UID_t id);
 
-	void emit(engine::AwaitableData* data, engine::WorkerBase* worker);
+	void emit(engine::AwaitableData* data);
 private:
     std::unordered_map<engine::WorkerType, std::pair<engine::WorkerBaseSharedPtr, CoroTaskVoid>> Workers;
     mutex_t mutex;

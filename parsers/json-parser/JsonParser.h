@@ -1,14 +1,13 @@
 #pragma once
-#include "json.hpp"
+
 #include "Types.h"
+#include "ParserUtils.h"
 namespace api{
 DECLARE_SHARED_PTR(ApiCommandBase)
 }
 
 namespace parse
 {
-using json = nlohmann::json;
-
 class JsonParser
 {
 public:
@@ -27,12 +26,32 @@ public:
         try
         {
             Data = json::parse(buffer);
+
             return true;
         }
         catch(const std::exception& e)
         {
             ERROR(Parse, e.what());
             return false;
+        }
+    }
+
+    template<typename buffer_type>
+    static std::optional<ParseData> ParseToData(buffer_type buffer)
+    {
+        if(buffer.empty())
+            return {};
+
+        try
+        {
+            ParseData data;
+            data.SetData(json::parse(buffer));
+            return data;
+        }
+        catch(const std::exception& e)
+        {
+            ERROR(Parse, e.what());
+            return {};
         }
     }
 

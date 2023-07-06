@@ -3,13 +3,13 @@
 namespace http{
 //-----------------------------------------------------------
 
-void Request::AddHeader(const String& header, const String& value) noexcept
+void RequestImpl::AddHeader(const String& header, const String& value) noexcept
 {
     Headers.emplace(header, value);
 }
 //-----------------------------------------------------------
 
-void Request::AddHeader(const char* start, const char* colon, const char* end)
+void RequestImpl::AddHeader(const char* start, const char* colon, const char* end)
 {
     String header(start, colon);
 
@@ -47,25 +47,25 @@ void Request::AddHeader(const char* start, const char* colon, const char* end)
 }
 //-----------------------------------------------------------
 
-void Request::SetBody(const String& body) noexcept
+void RequestImpl::SetBody(const String& body) noexcept
 {
     Body = body;
 }
 //-----------------------------------------------------------
 
-void Request::SetMethod(MethodType method) noexcept
+void RequestImpl::SetMethod(MethodType method) noexcept
 {
     Method = method;
 }
 //-----------------------------------------------------------
 
-void Request::SetUri(const String& uri) noexcept
+void RequestImpl::SetUri(const String& uri) noexcept
 {
     Uri = uri;
 }
 //-----------------------------------------------------------
 
-bool Request::SetMethod(StringView method) noexcept
+bool RequestImpl::SetMethod(StringView method) noexcept
 {
     Method = MethodFromString(method);
 
@@ -73,38 +73,38 @@ bool Request::SetMethod(StringView method) noexcept
 }
 //-----------------------------------------------------------
 
-void Request::SetVersion(Version version) noexcept
+void RequestImpl::SetVersion(Version version) noexcept
 {
     mVersion = version;
 }
 //-----------------------------------------------------------
 
-void Request::ReserveBody(size_t contentLenght) noexcept
+void RequestImpl::ReserveBody(size_t contentLenght) noexcept
 {
     Body.reserve(contentLenght);
 }
 //-----------------------------------------------------------
 
-void Request::AppendToBody(const char* data, size_t count)
+void RequestImpl::AppendToBody(const char* data, size_t count)
 {
     //Simple impl
     Body.append(data, count);
 }
 //-----------------------------------------------------------
 
-size_t Request::GetContentLenght() const noexcept
+size_t RequestImpl::GetContentLenght() const noexcept
 {
     return Body.length();
 }
 //-----------------------------------------------------------
 
-void Request::RemoveHeader(const String& header)
+void RequestImpl::RemoveHeader(const String& header)
 {
     Headers.erase(header);
 }
 //-----------------------------------------------------------
 
-const String& Request::GetHeader(const String& header) const noexcept
+const String& RequestImpl::GetHeader(const String& header) const noexcept
 {
     const static String defaulValue;
     auto find_iter = Headers.find(header);
@@ -116,30 +116,30 @@ const String& Request::GetHeader(const String& header) const noexcept
 }
 //-----------------------------------------------------------
 
-MethodType Request::GetMethod() const noexcept
+MethodType RequestImpl::GetMethod() const noexcept
 {
     return Method;
 }
 //-----------------------------------------------------------
 
-const String& Request::GetUri() const noexcept
+const String& RequestImpl::GetUri() const noexcept
 {
     return Uri;
 }
 //-----------------------------------------------------------
 
-const String& Request::GetBody() const noexcept
+const String& RequestImpl::GetBody() const noexcept
 {
     return Body;
 }
 //-----------------------------------------------------------
 
-Version Request::GetVersion() const noexcept
+Version RequestImpl::GetVersion() const noexcept
 {
     return mVersion;
 }
 //-----------------------------------------------------------
-void Request::Reset()
+void RequestImpl::Reset()
 {
     Method = MethodType::Unknown;
     Uri.clear();
@@ -147,6 +147,33 @@ void Request::Reset()
     Headers.clear();
     Body.clear();  
     Expect.clear();
+}
+//-----------------------------------------------------------
+
+String RequestImpl::ToMessage() const noexcept
+{
+    std::stringstream stream;
+
+    stream << Method << " " << Uri << " HTTP/"
+               << mVersion.ToString() << "\r\n";
+
+    for(auto header : Headers)
+    {
+        stream << header.first << ": " << header.second << "\r\n";
+    }
+
+    if(Body.length())
+    {
+        auto content_size = GetHeader("content-length");
+
+        if(content_size.empty())
+        {
+            stream << "content-length" << ": " << Body.length() << "\r\n";
+        }
+    }
+
+    stream << Body << "\r\n";
+    return stream.str();
 }
 //-----------------------------------------------------------
 //-----------------------------------------------------------

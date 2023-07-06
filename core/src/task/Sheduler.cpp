@@ -46,8 +46,8 @@ void Sheduler::RegisterWorker(engine::WorkerBaseSharedPtr worker)
     std::hash<std::thread::id> hasher;
     ASSERT(OwnerThreadID == hasher(std::this_thread::get_id()));
 
-    using std::placeholders::_1, std::placeholders::_2;
-    worker->set_emit(std::bind(&Sheduler::emit, this, _1, _2));
+    using std::placeholders::_1;
+    worker->set_emit(std::bind(&Sheduler::emit, this, _1));
     auto task = worker->Run();
     auto pair = std::pair<engine::WorkerBaseSharedPtr, CoroTaskVoid>(worker, std::move(task));
     Workers.emplace(worker->GetType(), std::move(pair));
@@ -62,10 +62,10 @@ Awaitable Sheduler::event(engine::WorkerType type, engine::UID_t id)
 }
 //-----------------------------------------------------------------
 
-void Sheduler::emit(engine::AwaitableData* data, engine::WorkerBase* worker)
+void Sheduler::emit(engine::AwaitableData* data)
 {
-    if(data->NeedUnreg)
-        worker->UnregAwaitable(data);
+    if(data->NeedUnreg && data->Worker)
+        data->Worker->UnregAwaitable(data);
 
     Processor->AddTask(data->continuation);
 }

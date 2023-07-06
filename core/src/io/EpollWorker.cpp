@@ -12,9 +12,7 @@ int get_errno(int fd) {
   }
 }
 //--------------------------------------------------------------------------------
-int EpollWorker::worker_type = engine::EPOLL;
-//--------------------------------------------------------------------------------
-EpollWorker::EpollWorker(engine::WorkFlag flag) : engine::WorkerBase(flag)
+EpollWorker::EpollWorker() : engine::WorkerBase()
 {
     if (EpollFd != -1)
         return;
@@ -57,13 +55,11 @@ task::CoroTaskVoid EpollWorker::Run()
 	{
 		int ret = epoll_wait(EpollFd, &ev, 1, 5000);
 
-        if(ret == -1)
+        if(ret == -1 || ret == 0)
         {
             continue;
         }
 
-        if(ret == 0)
-            continue;
        engine::AwaitableResult result;
        result.id = static_cast<ID_t>(ev.data.fd);
 
@@ -86,50 +82,21 @@ task::CoroTaskVoid EpollWorker::Run()
             result.type = engine::WakeUp;
         }
 
-        switch(Flag)
+        std::unordered_map<UID_t, engine::AwaitableData*>::iterator find;
         {
-            case engine::AllAwaiablesEmit:
-                EmitWithAllFlags(std::move(result));
-                break;
-            case engine::OnlyByID:
-                EmitWithOnlyByIDFlags(std::move(result));
-                break;
+            lock_t lock(mutex);
+            UID_t id = result.id;
+            find = Awaitables.find(id);
+            if(find == Awaitables.end())
+                continue;
         }
 
+        find->second->result = std::move(result);
+        find->second->Worker = this;
+
+        Emit(find->second);
     }
     co_return;
-}
-//--------------------------------------------------------------------------------
-
-void EpollWorker::EmitWithAllFlags(engine::AwaitableResult &&res)
-{
-    lock_t lock(mutex);
-
-    if(Awaitables.empty())
-        return;
-
-    for(auto await = Awaitables.begin(); await != Awaitables.end(); ++await)
-    {
-        await->second->result = res;
-        Emit(await->second, this);
-    }
-}
-//--------------------------------------------------------------------------------
-
-void EpollWorker::EmitWithOnlyByIDFlags(engine::AwaitableResult &&res)
-{
-    std::unordered_map<UID_t, engine::AwaitableData*>::iterator find;
-    {
-        lock_t lock(mutex);
-        UID_t id = res.id;
-        find = Awaitables.find(id);
-        if(find == Awaitables.end())
-            return;
-    }
-
-    find->second->result = std::move(res);
-
-    Emit(find->second, this);
 }
 //--------------------------------------------------------------------------------
 

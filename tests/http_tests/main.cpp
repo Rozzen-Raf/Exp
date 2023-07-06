@@ -35,7 +35,7 @@ int main( int argc, char* argv[] )
         using namespace engine;
 		auto sheduler = GetSheduler();
 
-		io::EpollWorkerSharedPtr worker = std::make_shared<io::EpollWorker>(OnlyByID);
+		io::EpollWorkerSharedPtr worker = std::make_shared<io::EpollWorker>();
 		sheduler->RegisterWorker(worker);
 
         String config = "{\
@@ -54,7 +54,7 @@ int main( int argc, char* argv[] )
             return 1;
 
         RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<io::EpollWorker>>(worker);
-        auto server = io::CreateServer<parse::JsonParser, http::HttpParser<parse::JsonParser>>(parser, mediator, sheduler, CreateRoute());
+        auto server = io::CreateServer<parse::JsonParser, http::HttpParser<parse::JsonParser>>(parser, sheduler, mediator, CreateRoute());
         if(!server)
         {
             throw std::runtime_error("server not created");
