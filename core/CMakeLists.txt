@@ -31,3 +31,5 @@ add_library (${LIB_TARGET_NAME} STATIC ${SOURCE_FILES} ${HEADER_FILES})
 set_property(TARGET ${LIB_TARGET_NAME} PROPERTY CXX_STANDARD 20)
 
 target_include_directories(${LIB_TARGET_NAME} PUBLIC ${INCLUDE_DIR})
+
+#target_precompile_headers(${LIB_TARGET_NAME} PUBLIC "./include/engine/Types.h" )
