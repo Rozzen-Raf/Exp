@@ -41,6 +41,7 @@ public:
 
 	inline void Close()
 	{
+        LOG(Socker, fd_);
         if(isValid())
         {
             shutdown(fd_, 2);

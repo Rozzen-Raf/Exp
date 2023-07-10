@@ -51,4 +51,9 @@ uint16_t IPEndPoint::GetPort() const noexcept
 {
 	return Port;
 }
+
+IPv IPEndPoint::GetVersion() const noexcept
+{
+	return Version;
+}
 }

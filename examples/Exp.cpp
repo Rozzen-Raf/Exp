@@ -42,7 +42,7 @@ int main()
 		sheduler->RegisterWorker(worker);
 
         RegisterMediatorBasePtr mediator = std::make_shared<RegisterMediator<io::EpollWorker>>(worker);
-        mysql::Database db(sheduler, mediator, {"127.0.0.1", 3306}, {"", "", ""});
+        mysql::Database db(sheduler, mediator, {"localhost", 3306}, {"db", "test", "secret"});
 
         JsonParser parser;
         if(parser.ParseFromFile("config.json"))
